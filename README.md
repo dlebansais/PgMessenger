@@ -68,15 +68,19 @@ There is a known vulnerability with this system: it's not particularly hard to f
 	
     Currently, if you just log out it doesn't say in logs, not until you log on a different character or quit the game.
 
-6. You said guild chat is encrypted. What encryption are you using?
+6. How far back can I see chat?
+	
+    It's defined server-side, currently it's one hour before messages start to be erased.
+
+7. You said guild chat is encrypted. What encryption are you using?
 
 	I'm using AES then HMAC. All the gory details are [here](https://github.com/dlebansais/PgMessenger/blob/master/PgMessenger/Encryption.cs).
     
-7. How do I know I can trust you with this app?
+8. How do I know I can trust you with this app?
 
 	It's [open source](https://github.com/dlebansais/PgMessenger). If you still don't trust it, don't run the fuckin app.
     
-8. What about the recent Meltdown and Spectre vulnerabilties?
+9. What about the recent Meltdown and Spectre vulnerabilties?
 
 	The server has been fixed with a patch. Beside, does it really matter? If security is so important for you, see the answer above.
 
