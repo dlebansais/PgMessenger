@@ -19,7 +19,7 @@ To contribute and send updates to others, follow these instructions:
 4. Right-click the icon to bring up a menu and choose **Load At Startup**.
 5. The dialog box that pops up gives you the two options that can set PgMessenger to load at startup: either run the program as administrator (never recommended, unless you really trust me), or follow specific instructions. You could start the program manually every time too but it's quite annoying.
 6. Right-click the icon again and select **Settings** to bring the PgMessenger settings window up. This is where you decide if you want to log guild chat, and if you do what are the guild affiliations of your characters (this is not in logs). The [guild chat](#guild-chat) section has more info about these settings.
-6. Make sure your quit and restart the game client, PgMessenger need to capture chat log when you log in.
+6. Make sure you quit and restart the game client, PgMessenger need to capture chat log when you log in.
 
 If you just want to read in-game chat, [download](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.8/PgMessenger.zip) and extract PgMessenger.zip, then run PgMessenger.exe.
 
@@ -63,12 +63,16 @@ There is a known vulnerability with this system: it's not particularly hard to f
 4. Isn't LogChat a VIP feature?
 	
     It will be some day but not today. Hopefully, when it becomes VIP-only, the chat API is available and it's no longer a concern.
+
+5. You said guild is encrypted. What encryption are you using?
+
+	I'm using AES then HMAC. All the gory details are [here](https://github.com/dlebansais/PgMessenger/blob/master/PgMessenger/Encryption.cs).
     
-5. How do I know I can trust you with this app?
+6. How do I know I can trust you with this app?
 
 	It's [open source](https://github.com/dlebansais/PgMessenger). If you still don't trust it, don't run the fuckin app.
     
-6. What about the recent Meltdown and Spectre vulnerabilties?
+7. What about the recent Meltdown and Spectre vulnerabilties?
 
 	The server has been fixed with a patch. Beside, does it really matter? If security is so important for you, see the answer above.
 
