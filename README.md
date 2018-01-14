@@ -39,7 +39,7 @@ These settings work as follow:
 * You can tell PgMessenger about a character and its guild affiliation, this will be visible to other guild members, and they will know:
   * That you have sent guild chat to the server.
   * When you are connected.
-  * Possibky when you are reading guild chat offline, although this particular feature is not implemented, but there is provision for it.
+  * Possibly when you are reading guild chat offline, although this particular feature is not implemented, but there is provision for it.
 * The **Auto** checkbox is used in coordination with the guild Message of the Day. The MotD is *never* sent to the server (even encrypted), but if the MotD contains the pattern 'PgMessenger:' then the password is automatically extracted every time a player logs in or the MotD is changed.
 
 Consider for example what happens if a player is removed from a guild. They can still see guild chat because they know the password. But if the password is changed in the MotD, all players sending guild chat lines will instantly use the new one (provided they are set on Auto). Offline members will also get the new password as soon as they log in.
@@ -64,7 +64,7 @@ There is a known vulnerability with this system: it's not particularly hard to f
 	
     It will be some day but not today. Hopefully, when it becomes VIP-only, the chat API is available and it's no longer a concern.
 
-5. You said guild is encrypted. What encryption are you using?
+5. You said guild chat is encrypted. What encryption are you using?
 
 	I'm using AES then HMAC. All the gory details are [here](https://github.com/dlebansais/PgMessenger/blob/master/PgMessenger/Encryption.cs).
     
