@@ -14,7 +14,7 @@ To contribute and send updates to others, follow these instructions:
 
 ![LogChat](/Doc/GameSettings.png?raw=true "The Settings window")
 
-2. [Download](https://github.com/dlebansais/PgMessenger/releases) and extract PgMessenger.zip somewhere on your computer.
+2. [Download](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.8/PgMessenger.zip) and extract PgMessenger.zip somewhere on your computer.
 3. Run PgMessenger.exe, this will add a little icon in the task bar, possibly in the taskbar icon window depending on your version of Windows and settings.
 4. Right-click the icon to bring up a menu and choose **Load At Startup**.
 5. The dialog box that pops up gives you the two options that can set PgMessenger to load at startup: either run the program as administrator (never recommended, unless you really trust me), or follow specific instructions. You could start the program manually every time too but it's quite annoying.
@@ -60,11 +60,15 @@ There is a known vulnerability with this system: it's not particularly hard to f
 	
     This feature is not available yet, but I'm thinking of adding it.
     
-4. How do I know I can trust you with this app?
+4. Isn't LogChat a VIP feature?
+	
+    It will be some day but not today. Hopefully, when it becomes VIP-only, the chat API is available and it's no longer a concern.
+    
+5. How do I know I can trust you with this app?
 
 	It's [open source](https://github.com/dlebansais/PgMessenger). If you still don't trust it, don't run the fuckin app.
     
-5. What about the recent Meltdown and Spectre vulnerabilties?
+6. What about the recent Meltdown and Spectre vulnerabilties?
 
 	The server has been fixed with a patch. Beside, does it really matter? If security is so important for you, see the answer above.
 
