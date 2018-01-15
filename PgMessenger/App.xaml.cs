@@ -582,18 +582,24 @@ namespace PgMessenger
             Values.Add("guildname", GetGuildName(LoginName));
             Values.Add("message", Message);
 
-            FormUrlEncodedContent Content = new FormUrlEncodedContent(Values);
-
-            Task<HttpResponseMessage> PostTask = ConnectionClient.PostAsync(ConnectionAddress + "upload_form.php", Content);
-            if (PostTask.Wait(2000))
+            try
             {
-                HttpResponseMessage Response = PostTask.Result;
+                FormUrlEncodedContent Content = new FormUrlEncodedContent(Values);
 
-                Task<string> ReadTask = Response.Content.ReadAsStringAsync();
-                if (ReadTask.Wait(2000))
+                Task<HttpResponseMessage> PostTask = ConnectionClient.PostAsync(ConnectionAddress + "upload_form.php", Content);
+                if (PostTask.Wait(2000))
                 {
-                    string Result = ReadTask.Result;
+                    HttpResponseMessage Response = PostTask.Result;
+
+                    Task<string> ReadTask = Response.Content.ReadAsStringAsync();
+                    if (ReadTask.Wait(2000))
+                    {
+                        string Result = ReadTask.Result;
+                    }
                 }
+            }
+            catch
+            {
             }
         }
 
@@ -604,36 +610,42 @@ namespace PgMessenger
             Values.Add("guildname", GuildName);
             Values.Add("index", LastReadIndex.ToString());
 
-            FormUrlEncodedContent Content = new FormUrlEncodedContent(Values);
-
-            Task<HttpResponseMessage> PostTask = ConnectionClient.PostAsync(ConnectionAddress + "download_form.php", Content);
-            if (PostTask.Wait(2000))
+            try
             {
-                HttpResponseMessage Response = PostTask.Result;
+                FormUrlEncodedContent Content = new FormUrlEncodedContent(Values);
 
-                Task<string> ReadTask = Response.Content.ReadAsStringAsync();
-                if (ReadTask.Wait(2000))
+                Task<HttpResponseMessage> PostTask = ConnectionClient.PostAsync(ConnectionAddress + "download_form.php", Content);
+                if (PostTask.Wait(2000))
                 {
-                    string Result = ReadTask.Result;
-                    string[] Lines = Result.Split('\n');
+                    HttpResponseMessage Response = PostTask.Result;
 
-                    bool IsUserInfoParsed = false;
-                    for (int i = 0; i < Lines.Length; i++)
+                    Task<string> ReadTask = Response.Content.ReadAsStringAsync();
+                    if (ReadTask.Wait(2000))
                     {
-                        string Line = Lines[i];
-                        if (Line.Length < 1 || Line[0] != '*')
-                            continue;
-                        Line = Line.Substring(1);
+                        string Result = ReadTask.Result;
+                        string[] Lines = Result.Split('\n');
 
-                        if (!IsUserInfoParsed)
+                        bool IsUserInfoParsed = false;
+                        for (int i = 0; i < Lines.Length; i++)
                         {
-                            IsUserInfoParsed = true;
-                            ParseUserInfo(Line, ref RegisteredUserCount, ref ConnectedUserCount, ref GuestUserCount, GuildmateTable);
+                            string Line = Lines[i];
+                            if (Line.Length < 1 || Line[0] != '*')
+                                continue;
+                            Line = Line.Substring(1);
+
+                            if (!IsUserInfoParsed)
+                            {
+                                IsUserInfoParsed = true;
+                                ParseUserInfo(Line, ref RegisteredUserCount, ref ConnectedUserCount, ref GuestUserCount, GuildmateTable);
+                            }
+                            else
+                                ParseMessageInfo(Line, HideSpoilers, GuildName, LogEntryList, ref LastReadIndex);
                         }
-                        else
-                            ParseMessageInfo(Line, HideSpoilers, GuildName, LogEntryList, ref LastReadIndex);
                     }
                 }
+            }
+            catch
+            {
             }
         }
 

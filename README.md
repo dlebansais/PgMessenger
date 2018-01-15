@@ -19,7 +19,7 @@ To contribute and send updates to others, follow these instructions:
 4. Right-click the icon to bring up a menu and choose **Load At Startup**.
 5. The dialog box that pops up gives you the two options that can set PgMessenger to load at startup: either run the program as administrator (never recommended, unless you really trust me), or follow specific instructions. You could start the program manually every time too but it's quite annoying.
 6. Right-click the icon again and select **Settings** to bring the PgMessenger settings window up. This is where you decide if you want to log guild chat, and if you do what are the guild affiliations of your characters (this is not in logs). The [guild chat](#guild-chat) section has more info about these settings.
-6. Make sure you quit and restart the game client, PgMessenger need to capture chat log when you log in.
+6. Make sure you quit and restart the game client, PgMessenger needs to capture chat log when you log in.
 
 If you just want to read in-game chat, [download](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.8/PgMessenger.zip) and extract PgMessenger.zip, then run PgMessenger.exe.
 
@@ -55,32 +55,36 @@ There is a known vulnerability with this system: it's not particularly hard to f
 2. I'm trying to read chat but it's not updated.
 
 	This is a community application, if nobody runs it then it doesn't work. It does takes at least a handful of players to kick off.
+
+3. I have restarted the game but it still doesn't see me online.
+
+	Depending on if you start the client from the game launcher or directly, a different log file is generated. This makes it rather complicated to find and read, and PgMessenger can miss the login message. To avoid this problem, always start the game the same way. Either directly, or from the game launcher, but don't mix. If you keep restarting it, eventually it should work.
     
-3. Item links don't work.
+4. Item links don't work.
 	
     This feature is not available yet, but I'm thinking of adding it.
     
-4. Isn't LogChat a VIP feature?
+5. Isn't LogChat a VIP feature?
 	
     It will be some day but not today. Hopefully, when it becomes VIP-only, the chat API is available and it's no longer a concern.
 
-5. PgMessenger claims I'm connected but I'm not.
+6. PgMessenger claims I'm connected but I'm not.
 	
     Currently, if you just log out it doesn't say in logs, not until you log on a different character or quit the game.
 
-6. How far back can I see chat?
+7. How far back can I see chat?
 	
     It's defined server-side, currently it's one hour before messages start to be erased.
 
-7. You said guild chat is encrypted. What encryption are you using?
+8. You said guild chat is encrypted. What encryption are you using?
 
 	I'm using AES then HMAC. All the gory details are [here](https://github.com/dlebansais/PgMessenger/blob/master/PgMessenger/Encryption.cs).
     
-8. How do I know I can trust you with this app?
+9. How do I know I can trust you with this app?
 
 	It's [open source](https://github.com/dlebansais/PgMessenger). If you still don't trust it, don't run the fuckin app.
     
-9. What about the recent Meltdown and Spectre vulnerabilties?
+10. What about the recent Meltdown and Spectre vulnerabilties?
 
 	The server has been fixed with a patch. Beside, does it really matter? If security is so important for you, see the answer above.
 

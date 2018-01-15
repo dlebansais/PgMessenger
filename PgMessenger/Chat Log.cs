@@ -11,14 +11,17 @@ namespace PgMessenger
         #region Constants
         private static readonly TimeSpan PollDelay = TimeSpan.FromMilliseconds(500);
         private static readonly TimeSpan KeepAliveTimeout = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan FolderCheckTimeout = TimeSpan.FromSeconds(30);
         #endregion
 
         #region Init
         public ChatLog()
         {
+            LocalLogFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"ProjectGorgon\screenshots");
+
             Guid localLowId = new Guid("A520A1A4-1780-4FF6-BD18-167343C5AF16");
             string ChatLogPath = GetKnownFolderPath(localLowId);
-            LogFolder = Path.Combine(ChatLogPath, @"Elder Game\Project Gorgon\ChatLogs");
+            LocalLowLogFolder = Path.Combine(ChatLogPath, @"Elder Game\Project Gorgon\ChatLogs");
         }
 
         private string GetKnownFolderPath(Guid knownFolderId)
@@ -43,11 +46,15 @@ namespace PgMessenger
         #endregion
 
         #region Properties
-        public string LogFolder { get; private set; }
         public bool IsStarting { get; private set; }
         public string LoginName { get; private set; }
         public DateTime LastLogCheck { get; private set; }
         public Stopwatch KeepAlive { get; private set; }
+        public Stopwatch FolderCheck { get; private set; }
+        public string LocalLogFolder { get; private set; }
+        public string LocalLowLogFolder { get; private set; }
+        public string SelectedLogFolder { get; private set; }
+        public string OtherLogFolder { get; private set; }
         #endregion
 
         #region Client Interface
@@ -56,6 +63,7 @@ namespace PgMessenger
             IsStarting = true;
             LastLogCheck = DateTime.Now;
             KeepAlive = new Stopwatch();
+            FolderCheck = new Stopwatch();
             WatcherTimer = new Timer(new TimerCallback(WatcherTimerCallback));
             WatcherTimer.Change(PollDelay, Timeout.InfiniteTimeSpan);
         }
@@ -68,9 +76,28 @@ namespace PgMessenger
                 LastLogCheck = Now;
                 Disconnect();
             }
+            else if (FolderCheck.Elapsed >= FolderCheckTimeout)
+            {
+                string OldSelected = SelectedLogFolder;
+                SelectFolder();
+                if (OldSelected != SelectedLogFolder)
+                {
+                    IsStarting = true;
+                    FolderCheck.Stop();
+                    Disconnect();
+                }
+                else
+                    FolderCheck.Restart();
+            }
 
             if (LogStream == null)
+            {
+                SelectFolder();
                 TryConnecting();
+            }
+            else
+            {
+            }
 
             if (LogStream != null)
                 OnChanged();
@@ -78,23 +105,55 @@ namespace PgMessenger
             WatcherTimer?.Change(PollDelay, Timeout.InfiniteTimeSpan);
         }
 
-        public void TryConnecting()
+        private string FilePathInFolder(string LogFolder)
         {
             DateTime Now = DateTime.Now;
             string LogFile = "Chat-" + (Now.Year % 100).ToString() + "-" + Now.Month.ToString("D2") + "-" + Now.Day.ToString("D2") + ".log";
             string LogFilePath = Path.Combine(LogFolder, LogFile);
 
-            if (File.Exists(LogFilePath))
+            return LogFilePath;
+        }
+
+        public void SelectFolder()
+        {
+            string LocalLogFilePath = FilePathInFolder(LocalLogFolder);
+            string LocalLowLogFilePath = FilePathInFolder(LocalLowLogFolder);
+            DateTime LocalLastWrite;
+            DateTime LocalLowLastWrite = DateTime.MinValue;
+
+            if (File.Exists(LocalLogFilePath))
+                LocalLastWrite = File.GetLastWriteTimeUtc(LocalLogFilePath);
+            else
+                LocalLastWrite = DateTime.MinValue;
+
+            if (File.Exists(LocalLowLogFilePath))
+                LocalLowLastWrite = File.GetLastWriteTimeUtc(LocalLowLogFilePath);
+            else
+                LocalLowLastWrite = DateTime.MinValue;
+
+            if (LocalLastWrite >= LocalLowLastWrite)
+                SelectedLogFolder = LocalLogFolder;
+            else
+                SelectedLogFolder = LocalLowLogFolder;
+        }
+
+        public void TryConnecting()
+        {
+            string SelectedLogFilePath = FilePathInFolder(SelectedLogFolder);
+
+            if (File.Exists(SelectedLogFilePath))
             {
                 try
                 {
-                    LogStream = new FileStream(LogFilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write);
+                    LogStream = new FileStream(SelectedLogFilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write);
                     if (IsStarting)
                     {
                         IsStarting = false;
                         LogStream.Seek(0, SeekOrigin.End);
-                        KeepAlive.Start();
                     }
+
+                    KeepAlive.Start();
+                    FolderCheck.Start();
                 }
                 catch
                 {
@@ -300,7 +359,10 @@ namespace PgMessenger
         public void Disconnect()
         {
             if (LogStream != null)
+            {
                 using (FileStream fs = LogStream) { }
+                LogStream = null;
+            }
         }
 
         public event EventHandler LoginNameChanged;

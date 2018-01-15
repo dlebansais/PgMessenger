@@ -282,7 +282,7 @@ namespace PgMessenger
             foreach (LogEntry Entry in LogEntryList)
                 GlobalMessageList.Add(Entry);
 
-            if (AutoScroll)
+            if (LogEntryList.Count > 0 && AutoScroll)
                 scrollMessages.ScrollToBottom();
 
             (Application.Current as App).UpdateToolTipText();
