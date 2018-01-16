@@ -93,6 +93,7 @@
     <Compile Include="Converters\Null To Object Converter.cs" />
     <Compile Include="Encryption.cs" />
     <Compile Include="Guildmate.cs" />
+    <Compile Include="Hash.cs" />
     <Compile Include="LoadAtStartupWindow.xaml.cs">
       <DependentUpon>LoadAtStartupWindow.xaml</DependentUpon>
     </Compile>

@@ -578,7 +578,7 @@ namespace PgMessenger
         #endregion
 
         #region Upload & Download
-        public static void UploadLog(string LoginName, string Channel, string Message)
+        public static void UploadLog(string LoginName, string Channel, string Message, string Hash)
         {
             Dictionary<string, string> Values = new Dictionary<string, string>();
             Values.Add("id", LogId);
@@ -586,6 +586,7 @@ namespace PgMessenger
             Values.Add("channel", Channel);
             Values.Add("guildname", GetGuildName(LoginName));
             Values.Add("message", Message);
+            Values.Add("hash", Hash);
 
             try
             {

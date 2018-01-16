@@ -306,6 +306,7 @@ namespace PgMessenger
         private void AddToLog(DateTime LogTime, ChannelType Type, string Message)
         {
             Message = Message.Replace('\n', '\t');
+            string Hash = "";
 
             if (Type == ChannelType.Guild)
             {
@@ -343,6 +344,7 @@ namespace PgMessenger
 
                     try
                     {
+                        Hash = MD5Hash.GetHashString(Message);
                         Message = Encryption.AESThenHMAC.SimpleEncryptWithPassword(Message, Password);
                     }
                     catch
@@ -356,7 +358,7 @@ namespace PgMessenger
             }
 
             if (Type == ChannelType.Global || Type == ChannelType.Help || Type == ChannelType.Trade || Type == ChannelType.Guild)
-                App.UploadLog(LoginName != null ? LoginName : "", Type.ToString(), Message);
+                App.UploadLog(LoginName != null ? LoginName : "", Type.ToString(), Message, Hash);
         }
 
         public void StopLogging()
