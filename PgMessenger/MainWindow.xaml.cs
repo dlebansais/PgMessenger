@@ -219,7 +219,8 @@ namespace PgMessenger
             App.SetSettingBool("Topmost", Topmost);
             App.SetSettingDouble("MessageZoom", MessageZoom);
             App.SetSettingBool("HideSpoilers", HideSpoilers);
-            App.SetSettingInt("SelectedGuild", SelectedGuild);
+            if (SelectedGuild >= 0)
+                App.SetSettingInt("SelectedGuild", SelectedGuild);
         }
         #endregion
 

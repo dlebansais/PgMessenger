@@ -66,6 +66,16 @@
             </Grid>
             <ItemsControl ItemsSource="{Binding CharacterList}" ItemTemplate="{StaticResource CharacterTemplate}" Margin="0,5,0,0"/>
         </StackPanel>
+        <GroupBox Header="Other Settings" Margin="0,10,0,0">
+            <Grid Margin="5,5,5,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0">Custom Log Folder:</TextBlock>
+                <TextBox Grid.Column="1" Text="{Binding CustomLogFolder}" MaxLength="255" Margin="5,0,0,0"/>
+            </Grid>
+        </GroupBox>
         <Separator Margin="0,10,0,0"/>
         <Button Command="{StaticResource CommandClose}" HorizontalAlignment="Center" Width="80" Height="24" Margin="0,10,0,0">Close</Button>
     </StackPanel>

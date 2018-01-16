@@ -60,6 +60,7 @@ namespace PgMessenger
         public static string LogId { get; private set; }
         public static List<CharacterSetting> CharacterList { get; private set; } = new List<CharacterSetting>();
         public static bool IsGuildChatEnabled { get; private set; }
+        public static string CustomLogFolder { get; private set; }
 
         public bool IsElevated
         {
@@ -310,11 +311,13 @@ namespace PgMessenger
 
         public void OnSettings(object sender, ExecutedRoutedEventArgs e)
         {
-            SettingsWindow Dlg = new SettingsWindow(CharacterList, IsGuildChatEnabled);
+            SettingsWindow Dlg = new SettingsWindow(CharacterList, IsGuildChatEnabled, CustomLogFolder);
             Dlg.ShowDialog();
 
             IsGuildChatEnabled = Dlg.IsGuildChatEnabled;
+            CustomLogFolder = Dlg.CustomLogFolder;
             MainPopup.UpdateGuildList(CharacterList);
+            CurrentChat.SetCustomLogFolder(CustomLogFolder);
         }
 
         public void OnClose(object sender, ExecutedRoutedEventArgs e)
@@ -376,6 +379,7 @@ namespace PgMessenger
             }
 
             IsGuildChatEnabled = GetSettingBool("IsGuildChatEnabled", false);
+            CustomLogFolder = GetSettingString("CustomLogFolder", "");
 
             for (int i = 0; i < 4; i++)
             {
@@ -405,6 +409,7 @@ namespace PgMessenger
         private static void SaveSettings()
         {
             SetSettingBool("IsGuildChatEnabled", IsGuildChatEnabled);
+            SetSettingString("CustomLogFolder", CustomLogFolder);
 
             for (int i = 0; i < 4 && i < CharacterList.Count; i++)
             {
@@ -511,7 +516,7 @@ namespace PgMessenger
         #region Chat Log
         private void InitChatLog()
         {
-            CurrentChat = new ChatLog();
+            CurrentChat = new ChatLog(CustomLogFolder);
             CurrentChat.LoginNameChanged += OnLoginNameChanged;
             CurrentChat.StartLogging();
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
@@ -10,10 +11,11 @@ namespace PgMessenger
     public partial class SettingsWindow : Window, INotifyPropertyChanged
     {
         #region Init
-        public SettingsWindow(List<CharacterSetting> characterList, bool isGuildChatEnabled)
+        public SettingsWindow(List<CharacterSetting> characterList, bool isGuildChatEnabled, string customLogFolder)
         {
             CharacterList = characterList;
             IsGuildChatEnabled = isGuildChatEnabled;
+            CustomLogFolder = customLogFolder;
             OpenedSettings = this;
 
             InitializeComponent();
@@ -25,11 +27,17 @@ namespace PgMessenger
         public static SettingsWindow OpenedSettings { get; private set; }
         public List<CharacterSetting> CharacterList { get; private set; }
         public bool IsGuildChatEnabled { get; set; }
+        public string CustomLogFolder { get; set; }
         #endregion
 
         #region Events
         private void OnClose(object sender, ExecutedRoutedEventArgs e)
         {
+            if (!string.IsNullOrEmpty(CustomLogFolder))
+                if (!Directory.Exists(CustomLogFolder))
+                    if (MessageBox.Show("The folder " + CustomLogFolder + " doesn't seem to exist. Close anyway?", "Warning", MessageBoxButton.OKCancel, MessageBoxImage.Warning) != MessageBoxResult.OK)
+                        return;
+
             Close();
         }
 

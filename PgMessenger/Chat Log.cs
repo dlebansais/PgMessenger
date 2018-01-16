@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 namespace PgMessenger
@@ -15,8 +16,9 @@ namespace PgMessenger
         #endregion
 
         #region Init
-        public ChatLog()
+        public ChatLog(string customLogFolder)
         {
+            CustomLogFolder = customLogFolder;
             LocalLogFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"ProjectGorgon\screenshots");
 
             Guid localLowId = new Guid("A520A1A4-1780-4FF6-BD18-167343C5AF16");
@@ -55,12 +57,14 @@ namespace PgMessenger
         public string LocalLowLogFolder { get; private set; }
         public string SelectedLogFolder { get; private set; }
         public string OtherLogFolder { get; private set; }
+        public string CustomLogFolder { get; private set; }
         #endregion
 
         #region Client Interface
         public void StartLogging()
         {
             IsStarting = true;
+            IsReconnectionRequired = false;
             LastLogCheck = DateTime.Now;
             KeepAlive = new Stopwatch();
             FolderCheck = new Stopwatch();
@@ -74,7 +78,7 @@ namespace PgMessenger
             if (LastLogCheck.Day != Now.Day)
             {
                 LastLogCheck = Now;
-                Disconnect();
+                IsReconnectionRequired = true;
             }
             else if (FolderCheck.Elapsed >= FolderCheckTimeout)
             {
@@ -84,19 +88,22 @@ namespace PgMessenger
                 {
                     IsStarting = true;
                     FolderCheck.Stop();
-                    Disconnect();
+                    IsReconnectionRequired = true;
                 }
                 else
                     FolderCheck.Restart();
+            }
+
+            if (IsReconnectionRequired)
+            {
+                IsReconnectionRequired = false;
+                Disconnect();
             }
 
             if (LogStream == null)
             {
                 SelectFolder();
                 TryConnecting();
-            }
-            else
-            {
             }
 
             if (LogStream != null)
@@ -114,8 +121,14 @@ namespace PgMessenger
             return LogFilePath;
         }
 
-        public void SelectFolder()
+        private void SelectFolder()
         {
+            if (!string.IsNullOrEmpty(CustomLogFolder))
+            {
+                SelectedLogFolder = CustomLogFolder;
+                return;
+            }
+
             string LocalLogFilePath = FilePathInFolder(LocalLogFolder);
             string LocalLowLogFilePath = FilePathInFolder(LocalLowLogFolder);
             DateTime LocalLastWrite;
@@ -137,7 +150,7 @@ namespace PgMessenger
                 SelectedLogFolder = LocalLowLogFolder;
         }
 
-        public void TryConnecting()
+        private void TryConnecting()
         {
             string SelectedLogFilePath = FilePathInFolder(SelectedLogFolder);
 
@@ -173,11 +186,12 @@ namespace PgMessenger
                 byte[] Content = new byte[Length];
                 LogStream.Read(Content, 0, Length);
 
-                char[] LineContent = new char[Content.Length];
+                /*char[] LineContent = new char[Content.Length];
                 for (int i = 0; i < Length; i++)
                     LineContent[i] = (char)Content[i];
 
-                string ExtractedLines = new string(LineContent);
+                string ExtractedLines = new string(LineContent);*/
+                string ExtractedLines = Encoding.UTF8.GetString(Content);
 
                 string[] Lines = ExtractedLines.Split(new string[] { "\r\n" }, StringSplitOptions.None);
                 for (int i = 0; i < Lines.Length; i++)
@@ -356,7 +370,7 @@ namespace PgMessenger
             Disconnect();
         }
 
-        public void Disconnect()
+        private void Disconnect()
         {
             if (LogStream != null)
             {
@@ -372,8 +386,18 @@ namespace PgMessenger
             LoginNameChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        public void SetCustomLogFolder(string customLogFolder)
+        {
+            if (customLogFolder != CustomLogFolder)
+            {
+                CustomLogFolder = customLogFolder;
+                IsReconnectionRequired = true;
+            }
+        }
+
         private FileStream LogStream;
         private Timer WatcherTimer;
+        private bool IsReconnectionRequired;
         #endregion
 
         #region Implementation of IDisposable
