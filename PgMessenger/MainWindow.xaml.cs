@@ -190,7 +190,7 @@ namespace PgMessenger
             foreach (string GuildName in ToRemove)
                 GuildList.Remove(GuildName);
 
-            if (!GuildList.Contains(OldSelectedGuild))
+            if (OldSelectedGuild != null && !GuildList.Contains(OldSelectedGuild))
                 SelectedGuild = -1;
             else if (GuildList.Count == 1 && SelectedGuild == -1)
                 SelectedGuild = 0;
@@ -227,7 +227,6 @@ namespace PgMessenger
         #region Log entries
         private void InitLogEntries()
         {
-            LastReadIndex = -1;
             _RegisteredUserCount = 0;
             _ConnectedUserCount = 0;
             _GuestUserCount = 0;
@@ -248,9 +247,9 @@ namespace PgMessenger
             int LatestConnectedUserCount = ConnectedUserCount;
             int LatestGuestUserCount = GuestUserCount;
             Dictionary<string, int> GuildmateTable = new Dictionary<string, int>();
-            List<LogEntry> LogEntryList = new List<LogEntry>();
+            List<string> ChatLineList = new List<string>();
 
-            App.DownloadLog(HideSpoilers, GuildName, ref LastReadIndex, ref LatestRegisteredUserCount, ref LatestConnectedUserCount, ref LatestGuestUserCount, GuildmateTable, LogEntryList);
+            App.DownloadLog(GuildName, ref LatestRegisteredUserCount, ref LatestConnectedUserCount, ref LatestGuestUserCount, GuildmateTable, ChatLineList);
 
             RegisteredUserCount = LatestRegisteredUserCount;
             ConnectedUserCount = LatestConnectedUserCount;
@@ -280,17 +279,35 @@ namespace PgMessenger
             foreach (Guildmate Guildmate in ToRemove)
                 GuildmateList.Remove(Guildmate);
 
-            foreach (LogEntry Entry in LogEntryList)
-                GlobalMessageList.Add(Entry);
-
-            if (LogEntryList.Count > 0 && AutoScroll)
-                scrollMessages.ScrollToBottom();
-
             (Application.Current as App).UpdateToolTipText();
+
+            if (ChatLineList.Count > 0)
+                Dispatcher.BeginInvoke(new ParseMessageInfoHandler(OnParseMessageInfo), ChatLineList, GuildName);
+        }
+
+        private delegate void ParseMessageInfoHandler(List<string> ChatLineList, string GuildName);
+        private void OnParseMessageInfo(List<string> ChatLineList, string GuildName)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (ChatLineList.Count == 0)
+                {
+                    if (AutoScroll)
+                        scrollMessages.ScrollToBottom();
+                    return;
+                }
+
+                LogEntry LogEntry;
+                if (App.ParseMessageInfo(ChatLineList[0], HideSpoilers, GuildName, out LogEntry))
+                    GlobalMessageList.Add(LogEntry);
+
+                ChatLineList.RemoveAt(0);
+            }
+
+            Dispatcher.BeginInvoke(new ParseMessageInfoHandler(OnParseMessageInfo), ChatLineList, GuildName);
         }
 
         private Timer LogTimer;
-        private int LastReadIndex;
         #endregion
 
         #region Events

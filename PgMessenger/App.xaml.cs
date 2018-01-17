@@ -24,6 +24,7 @@ namespace PgMessenger
         {
             InitSettings();
             LoadSettings();
+            LastReadIndex = -1;
         }
 
         public App()
@@ -609,7 +610,7 @@ namespace PgMessenger
             }
         }
 
-        public static void DownloadLog(bool HideSpoilers, string GuildName, ref int LastReadIndex, ref int RegisteredUserCount, ref int ConnectedUserCount, ref int GuestUserCount, Dictionary<string, int> GuildmateTable, List<LogEntry> LogEntryList)
+        public static void DownloadLog(string GuildName, ref int RegisteredUserCount, ref int ConnectedUserCount, ref int GuestUserCount, Dictionary<string, int> GuildmateTable, List<string> ChatLineList)
         {
             Dictionary<string, string> Values = new Dictionary<string, string>();
             Values.Add("id", LogId);
@@ -645,7 +646,7 @@ namespace PgMessenger
                                 ParseUserInfo(Line, ref RegisteredUserCount, ref ConnectedUserCount, ref GuestUserCount, GuildmateTable);
                             }
                             else
-                                ParseMessageInfo(Line, HideSpoilers, GuildName, LogEntryList, ref LastReadIndex);
+                                ChatLineList.Add(Line);
                         }
                     }
                 }
@@ -709,15 +710,17 @@ namespace PgMessenger
             }
         }
 
-        public static void ParseMessageInfo(string Line, bool HideSpoilers, string GuildName, List<LogEntry> LogEntryList, ref int LastReadIndex)
+        public static bool ParseMessageInfo(string Line, bool HideSpoilers, string GuildName, out LogEntry LogEntry)
         {
+            LogEntry = null;
+
             string[] Parts = Line.Split('/');
             if (Parts.Length < 9)
-                return;
+                return false;
 
             int LineIndex;
             if (!int.TryParse(Parts[0], out LineIndex))
-                return;
+                return false;
 
             if (LastReadIndex <= LineIndex)
                 LastReadIndex = LineIndex + 1;
@@ -729,19 +732,19 @@ namespace PgMessenger
                 !int.TryParse(Parts[4], out Hour) ||
                 !int.TryParse(Parts[5], out Minute) ||
                 !int.TryParse(Parts[6], out Second))
-                return;
+                return false;
 
             DateTime LogTime = new DateTime(Year, Month, Day, Hour, Minute, Second, DateTimeKind.Utc);
-            LogTime = LogTime.ToLocalTime();
+            //LogTime = LogTime.ToLocalTime();
 
             string Channel = Parts[7];
             if (Channel.Length < 2)
-                return;
+                return false;
 
             Channel = Channel[0].ToString().ToUpper() + Channel.Substring(1);
             ChannelType LogType = ChatLog.StringToChannelType(Channel);
             if (LogType == ChannelType.Other)
-                return;
+                return false;
 
             string Message = "";
             for (int j = 8; j < Parts.Length; j++)
@@ -755,7 +758,7 @@ namespace PgMessenger
             {
                 string Password = GetPasswordByGuildName(GuildName);
                 if (Password == null)
-                    return;
+                    return false;
 
                 try
                 {
@@ -767,7 +770,7 @@ namespace PgMessenger
                 }
 
                 if (Message == null)
-                    return;
+                    return false;
             }
 
             string Author;
@@ -798,7 +801,7 @@ namespace PgMessenger
                         break;
 
                     string ItemName = MessageEnd.Substring(1, ItemEndIndex - 1);
-                    ItemList.Add(ItemName);
+                    ItemList.Add("[" + ItemName + "]");
 
                     MessageEnd = MessageEnd.Substring(ItemEndIndex + 1).Trim();
                 }
@@ -822,13 +825,14 @@ namespace PgMessenger
                 Message = Message.Replace("\t", "[[[Spoiler]]]");
             }
 
-            LogEntry NewEntry = new LogEntry(LogTime, LogType, Author, Message, ItemList);
-            LogEntryList.Add(NewEntry);
+            LogEntry = new LogEntry(LogTime, LogType, Author, Message, ItemList);
             //Debug.Print("Entry added: " + LogTime + ", " + LogType + ", " + Message);
+            return true;
         }
 
         private static string ConnectionAddress = "http://www.enu.numbatsoft.com/pgmessenger/";
         private static readonly HttpClient ConnectionClient = new HttpClient();
+        private static int LastReadIndex;
         #endregion
 
         #region Implementation of ITaskbarClient
