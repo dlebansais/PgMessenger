@@ -84,7 +84,7 @@ There is a known vulnerability with this system: it's not particularly hard to f
 
 	It's [open source](https://github.com/dlebansais/PgMessenger). If you still don't trust it, don't run the fuckin app.
     
-10. What about the recent Meltdown and Spectre vulnerabilties?
+10. What about the recent Meltdown and Spectre vulnerabilities?
 
 	The server has been fixed with a patch. Beside, does it really matter? If security is so important for you, see the answer above.
 
