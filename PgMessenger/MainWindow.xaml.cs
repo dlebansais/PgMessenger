@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Navigation;
 using System.Windows.Threading;
 
 namespace PgMessenger
@@ -49,6 +52,20 @@ namespace PgMessenger
         #endregion
 
         #region Properties
+        public string CurrentVersion
+        {
+            get
+            {
+                try { return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion; }
+                catch { return ""; }
+            }
+        }
+
+        public bool IsUpdateAvailable
+        {
+            get { return App.IsUpdateAvailable(CurrentVersion); }
+        }
+
         public int RegisteredUserCount
         {
             get { return _RegisteredUserCount; }
@@ -150,6 +167,10 @@ namespace PgMessenger
         }
         private bool _HideSpoilers;
 
+        public bool DisplayGlobal { get; set; }
+        public bool DisplayHelp { get; set; }
+        public bool DisplayTrade { get; set; }
+
         public int SelectedGuild
         {
             get { return _SelectedGuild; }
@@ -211,6 +232,9 @@ namespace PgMessenger
                 _MessageZoom = DefaultZoom;
             _HideSpoilers = App.GetSettingBool("HideSpoilers", true);
             _SelectedGuild = App.GetSettingInt("SelectedGuild", -1);
+            DisplayGlobal = App.GetSettingBool("DisplayGlobal", true);
+            DisplayHelp = App.GetSettingBool("DisplayHelp", true);
+            DisplayTrade = App.GetSettingBool("DisplayTrade", true);
         }
 
         private void SaveSettings()
@@ -221,6 +245,9 @@ namespace PgMessenger
             App.SetSettingBool("HideSpoilers", HideSpoilers);
             if (SelectedGuild >= 0)
                 App.SetSettingInt("SelectedGuild", SelectedGuild);
+            App.SetSettingBool("DisplayGlobal", DisplayGlobal);
+            App.SetSettingBool("DisplayHelp", DisplayHelp);
+            App.SetSettingBool("DisplayTrade", DisplayTrade);
         }
         #endregion
 
@@ -298,7 +325,7 @@ namespace PgMessenger
                 }
 
                 LogEntry LogEntry;
-                if (App.ParseMessageInfo(ChatLineList[0], HideSpoilers, GuildName, out LogEntry))
+                if (App.ParseMessageInfo(ChatLineList[0], HideSpoilers, DisplayGlobal, DisplayHelp, DisplayTrade, GuildName, out LogEntry))
                     GlobalMessageList.Add(LogEntry);
 
                 ChatLineList.RemoveAt(0);
@@ -338,22 +365,33 @@ namespace PgMessenger
 
         private void OnSettings(object sender, ExecutedRoutedEventArgs e)
         {
-            (Application.Current as App).OnSettings(sender, e);
+            (Application.Current as App).OnSettings();
+            NotifyPropertyChanged(nameof(IsUpdateAvailable));
         }
 
         private void OnClose(object sender, ExecutedRoutedEventArgs e)
         {
-            (Application.Current as App).OnClose(sender, e);
+            (Application.Current as App).OnClose();
         }
 
         private void OnExit(object sender, ExecutedRoutedEventArgs e)
         {
-            (Application.Current as App).OnExit(sender, e);
+            (Application.Current as App).OnExit();
         }
 
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
+        }
+
+        private void OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            bool CloseApplication = (MessageBox.Show("To use the dowloaded update you need to exit the application. Do it now?", "Downloading update", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes);
+            Process UpdateProcess = Process.Start(PgMessenger.App.UpdateLink);
+            UpdateProcess.WaitForExit(3000);
+
+            if (CloseApplication)
+                (Application.Current as App).OnExit();
         }
         #endregion
 

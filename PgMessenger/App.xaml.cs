@@ -2,11 +2,15 @@
 using SchedulerTools;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -24,6 +28,7 @@ namespace PgMessenger
         {
             InitSettings();
             LoadSettings();
+            InitUpdate();
             LastReadIndex = -1;
         }
 
@@ -62,6 +67,7 @@ namespace PgMessenger
         public static List<CharacterSetting> CharacterList { get; private set; } = new List<CharacterSetting>();
         public static bool IsGuildChatEnabled { get; private set; }
         public static string CustomLogFolder { get; private set; }
+        public static bool EnableUpdates { get; private set; }
 
         public bool IsElevated
         {
@@ -310,23 +316,24 @@ namespace PgMessenger
             }
         }
 
-        public void OnSettings(object sender, ExecutedRoutedEventArgs e)
+        public void OnSettings()
         {
-            SettingsWindow Dlg = new SettingsWindow(CharacterList, IsGuildChatEnabled, CustomLogFolder);
+            SettingsWindow Dlg = new SettingsWindow(CharacterList, IsGuildChatEnabled, CustomLogFolder, EnableUpdates);
             Dlg.ShowDialog();
 
             IsGuildChatEnabled = Dlg.IsGuildChatEnabled;
             CustomLogFolder = Dlg.CustomLogFolder;
+            EnableUpdates = Dlg.EnableUpdates;
             MainPopup.UpdateGuildList(CharacterList);
             CurrentChat.SetCustomLogFolder(CustomLogFolder);
         }
 
-        public void OnClose(object sender, ExecutedRoutedEventArgs e)
+        public void OnClose()
         {
             MainPopup.Hide();
         }
 
-        public void OnExit(object sender, ExecutedRoutedEventArgs e)
+        public void OnExit()
         {
             MainPopup.Close();
             Shutdown();
@@ -381,6 +388,7 @@ namespace PgMessenger
 
             IsGuildChatEnabled = GetSettingBool("IsGuildChatEnabled", false);
             CustomLogFolder = GetSettingString("CustomLogFolder", "");
+            EnableUpdates = GetSettingBool("EnableUpdates", true);
 
             for (int i = 0; i < 4; i++)
             {
@@ -411,6 +419,7 @@ namespace PgMessenger
         {
             SetSettingBool("IsGuildChatEnabled", IsGuildChatEnabled);
             SetSettingString("CustomLogFolder", CustomLogFolder);
+            SetSettingBool("EnableUpdates", EnableUpdates);
 
             for (int i = 0; i < 4 && i < CharacterList.Count; i++)
             {
@@ -710,7 +719,7 @@ namespace PgMessenger
             }
         }
 
-        public static bool ParseMessageInfo(string Line, bool HideSpoilers, string GuildName, out LogEntry LogEntry)
+        public static bool ParseMessageInfo(string Line, bool HideSpoilers, bool DisplayGlobal, bool DisplayHelp, bool DisplayTrade, string GuildName, out LogEntry LogEntry)
         {
             LogEntry = null;
 
@@ -743,7 +752,10 @@ namespace PgMessenger
 
             Channel = Channel[0].ToString().ToUpper() + Channel.Substring(1);
             ChannelType LogType = ChatLog.StringToChannelType(Channel);
-            if (LogType == ChannelType.Other)
+            if (LogType == ChannelType.Other ||
+                (LogType == ChannelType.Global && !DisplayGlobal) ||
+                (LogType == ChannelType.Help && !DisplayHelp) ||
+                (LogType == ChannelType.Trade && !DisplayTrade))
                 return false;
 
             string Message = "";
@@ -833,6 +845,79 @@ namespace PgMessenger
         private static string ConnectionAddress = "http://www.enu.numbatsoft.com/pgmessenger/";
         private static readonly HttpClient ConnectionClient = new HttpClient();
         private static int LastReadIndex;
+        #endregion
+
+        #region Update
+        public static void InitUpdate()
+        {
+            UpdateLink = null;
+        }
+
+        public static bool IsUpdateAvailable(string CurrentVersion)
+        {
+            if (!EnableUpdates)
+                return false;
+
+            string ReleasePageAddress = "https://github.com/dlebansais/PgMessenger/releases";
+
+            try
+            {
+                HttpWebRequest Request = WebRequest.Create(ReleasePageAddress) as HttpWebRequest;
+                using (WebResponse Response = Request.GetResponse())
+                {
+                    using (Stream ResponseStream = Response.GetResponseStream())
+                    {
+                        using (StreamReader Reader = new StreamReader(ResponseStream, Encoding.ASCII))
+                        {
+                            string Content = Reader.ReadToEnd();
+
+                            string Pattern = @"<a href=""/dlebansais/PgMessenger/releases/tag/";
+                            int Index = Content.IndexOf(Pattern);
+                            if (Index >= 0)
+                            {
+                                string UpdateTagVersion = Content.Substring(Index + Pattern.Length, 20);
+                                int EndIndex = UpdateTagVersion.IndexOf('"');
+                                if (EndIndex > 0)
+                                {
+                                    UpdateTagVersion = UpdateTagVersion.Substring(0, EndIndex);
+
+                                    string UpdateVersion;
+
+                                    if (UpdateTagVersion.ToLower().StartsWith("v"))
+                                        UpdateVersion = UpdateTagVersion.Substring(1);
+                                    else
+                                        UpdateVersion = UpdateTagVersion;
+
+                                    string[] UpdateSplit = UpdateVersion.Split('.');
+                                    string[] CurrentSplit = CurrentVersion.Split('.');
+                                    for (int i = 0; i < UpdateSplit.Length && i < CurrentSplit.Length; i++)
+                                    {
+                                        int UpdateValue, CurrentValue;
+                                        if (!int.TryParse(UpdateSplit[i], out UpdateValue) || !int.TryParse(CurrentSplit[i], out CurrentValue))
+                                            break;
+                                        else if (UpdateValue < CurrentValue)
+                                            break;
+                                        else if (UpdateValue > CurrentValue)
+                                        {
+                                            UpdateLink = "https://github.com/dlebansais/PgMessenger/releases/download/" + UpdateTagVersion + "/PgMessenger.zip";
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Print(e.Message);
+            }
+
+            return UpdateLink != null;
+        }
+
+        public static string UpdateLink { get; private set; }
         #endregion
 
         #region Implementation of ITaskbarClient

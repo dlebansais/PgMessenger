@@ -11,11 +11,12 @@ namespace PgMessenger
     public partial class SettingsWindow : Window, INotifyPropertyChanged
     {
         #region Init
-        public SettingsWindow(List<CharacterSetting> characterList, bool isGuildChatEnabled, string customLogFolder)
+        public SettingsWindow(List<CharacterSetting> characterList, bool isGuildChatEnabled, string customLogFolder, bool enableUpdates)
         {
             CharacterList = characterList;
             IsGuildChatEnabled = isGuildChatEnabled;
             CustomLogFolder = customLogFolder;
+            EnableUpdates = enableUpdates;
             OpenedSettings = this;
 
             InitializeComponent();
@@ -28,6 +29,7 @@ namespace PgMessenger
         public List<CharacterSetting> CharacterList { get; private set; }
         public bool IsGuildChatEnabled { get; set; }
         public string CustomLogFolder { get; set; }
+        public bool EnableUpdates { get; set; }
         #endregion
 
         #region Events

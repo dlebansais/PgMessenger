@@ -46,6 +46,14 @@
             <sys:Boolean>False</sys:Boolean>
             <sys:Boolean>True</sys:Boolean>
         </CompositeCollection>
+        <CompositeCollection x:Key="CollapsedVisible">
+            <Visibility>Collapsed</Visibility>
+            <Visibility>Visible</Visibility>
+        </CompositeCollection>
+        <CompositeCollection x:Key="VisibleCollapsed">
+            <Visibility>Visible</Visibility>
+            <Visibility>Collapsed</Visibility>
+        </CompositeCollection>
         <CompositeCollection x:Key="HiddenVisible">
             <Visibility>Hidden</Visibility>
             <Visibility>Visible</Visibility>
@@ -115,8 +123,19 @@
                         </Grid>
                     </DataTemplate>
                 </DockPanel.Resources>
-                <DockPanel DockPanel.Dock="Top">
-                    <DockPanel>
+                <DockPanel DockPanel.Dock="Top" LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="10,0,30,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock>v</TextBlock>
+                            <TextBlock Text="{Binding CurrentVersion}"/>
+                        </StackPanel>
+                        <TextBlock Margin="10,0,0,0" Visibility="{Binding IsUpdateAvailable, Converter={StaticResource convBooleanToObject}, ConverterParameter={StaticResource CollapsedVisible}, FallbackValue=Collapsed}" VerticalAlignment="Center">
+                            <Hyperlink RequestNavigate="OnRequestNavigate" NavigateUri="unused">
+                                <TextBlock>Update available</TextBlock>
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                    <WrapPanel>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="{Binding RegisteredUserCount}" TextAlignment="Right" MinWidth="20" Margin="0,0,5,0"/>
                             <TextBlock>Registered User(s),</TextBlock>
@@ -144,22 +163,36 @@
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
                         </DockPanel>
-                    </DockPanel>
+                    </WrapPanel>
                 </DockPanel>
                 <Separator DockPanel.Dock="Top" Margin="0,5,0,5"/>
-                <DockPanel DockPanel.Dock="Bottom" LastChildFill="False" Margin="5,0,5,5">
-                    <CheckBox IsChecked="{Binding AutoScroll}" VerticalAlignment="Center" Margin="0,0,10,0">Auto Scroll To Bottom</CheckBox>
-                    <CheckBox IsChecked="{Binding Topmost}" VerticalAlignment="Center" Margin="0,0,10,0">Stay At Top</CheckBox>
-                    <CheckBox IsChecked="{Binding HideSpoilers}" VerticalAlignment="Center" Margin="0,0,10,0">Hide Spoilers</CheckBox>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="{Binding GuildList.Count, Converter={StaticResource convCountToObject}, ConverterParameter={StaticResource FalseTrue}, FallbackValue=False}" Margin="10,0,0,0">
-                        <TextBlock VerticalAlignment="Center" Text="Guild Chat:"/>
-                        <ComboBox ItemsSource="{Binding GuildList}" SelectedIndex="{Binding SelectedGuild}" IsReadOnly="True" VerticalAlignment="Center" MinWidth="150" Margin="5,0,0,0"/>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                <DockPanel DockPanel.Dock="Bottom" Margin="5,0,5,5">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock VerticalAlignment="Center">Zoom:</TextBlock>
                         <TextBlock Text="{Binding ElementName=sliderZoom, Path=Value}" VerticalAlignment="Center" Width="15" Margin="5,0,10,0"/>
                         <Slider x:Name="sliderZoom" Minimum="1" Maximum="5" TickFrequency="0.5" IsSnapToTickEnabled="True" TickPlacement="Both" Value="{Binding MessageZoom}" VerticalAlignment="Center" Width="110"/>
                     </StackPanel>
+                    <WrapPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <CheckBox IsChecked="{Binding AutoScroll}" VerticalAlignment="Center" Margin="0,0,10,0">Auto Scroll To Bottom</CheckBox>
+                            <CheckBox IsChecked="{Binding Topmost}" VerticalAlignment="Center" Margin="0,0,10,0">Stay At Top</CheckBox>
+                            <CheckBox IsChecked="{Binding HideSpoilers}" VerticalAlignment="Center" Margin="0,0,10,0">Hide Spoilers</CheckBox>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="{Binding GuildList.Count, Converter={StaticResource convCountToObject}, ConverterParameter={StaticResource FalseTrue}, FallbackValue=False}" Margin="10,0,0,0">
+                                <TextBlock VerticalAlignment="Center" Text="Guild Chat:"/>
+                                <ComboBox ItemsSource="{Binding GuildList}" SelectedIndex="{Binding SelectedGuild}" IsReadOnly="True" VerticalAlignment="Center" MinWidth="150" Margin="5,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Grid VerticalAlignment="Center" Margin="0,0,10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" IsChecked="{Binding DisplayGlobal}" VerticalAlignment="Center" Margin="0,0,10,0">Global</CheckBox>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding DisplayHelp}" VerticalAlignment="Center" Margin="0,0,10,0">Help</CheckBox>
+                            <CheckBox Grid.Column="2" IsChecked="{Binding DisplayTrade}" VerticalAlignment="Center" Margin="0,0,10,0">Trade</CheckBox>
+                        </Grid>
+                    </WrapPanel>
                 </DockPanel>
                 <Separator DockPanel.Dock="Bottom" Margin="0,5,0,5"/>
                 <ScrollViewer x:Name="scrollMessages" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#2A1E1B" Padding="0,2,0,2">
