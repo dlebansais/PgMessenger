@@ -186,11 +186,6 @@ namespace PgMessenger
                 byte[] Content = new byte[Length];
                 LogStream.Read(Content, 0, Length);
 
-                /*char[] LineContent = new char[Content.Length];
-                for (int i = 0; i < Length; i++)
-                    LineContent[i] = (char)Content[i];
-
-                string ExtractedLines = new string(LineContent);*/
                 string ExtractedLines = Encoding.UTF8.GetString(Content);
 
                 string[] Lines = ExtractedLines.Split(new string[] { "\r\n" }, StringSplitOptions.None);
@@ -318,6 +313,9 @@ namespace PgMessenger
 
                 if (Message.StartsWith("(SYSTEM)"))
                 {
+                    if (Message[Message.Length - 1] == '"')
+                        Message = Message.Substring(0, Message.Length - 1);
+
                     string PasswordPattern = "PgMessenger:";
                     int PasswordStart = Message.IndexOf(PasswordPattern);
 
