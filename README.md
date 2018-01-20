@@ -1,6 +1,9 @@
 # What is PgMessenger?
 PgMessenger is a Windows program (download [here](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.61/PgMessenger.zip)) that let you read the game chat of *Project: Gorgon* on any computer.
 
+![Screenshot](/Doc/Screenshot.png?raw=true "Screenshot Example")
+
+
 ## How does it work?
 The *Project: Gorgon* game client -when configured to do so- can save a log of in-game chat in files. Any player running PgMessenger will send new chat lines to a dedicated server, and anyone running PgMessenger will get updates from that server and display it in real time. Therefore, the system just need a handful of people playing across times zones and running PgMessenger for everyone to see chat 24/7.
 
