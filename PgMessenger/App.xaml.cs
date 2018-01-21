@@ -744,7 +744,7 @@ namespace PgMessenger
                 return false;
 
             DateTime LogTime = new DateTime(Year, Month, Day, Hour, Minute, Second, DateTimeKind.Utc);
-            //LogTime = LogTime.ToLocalTime();
+            LogTime = LogTime.ToLocalTime();
 
             string Channel = Parts[7];
             if (Channel.Length < 2)

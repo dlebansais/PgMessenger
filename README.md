@@ -9,7 +9,7 @@ The *Project: Gorgon* game client -when configured to do so- can save a log of i
 
 All common channels are captured: Global, Help and Trade. Custom room channels are not. Guild channel is also captured but visible only to guild members through a few tricks (see the [guild chat](#guild-chat) section).
 
-Eventually, PgMessenger will be changed to use a game chat API, but until then log files are the only way to do this.
+Eventually, PgMessenger will be changed to use an official game chat API, but until then log files are the only way to do this.
 
 # Setting up
 To contribute and send updates to others, follow these instructions:
