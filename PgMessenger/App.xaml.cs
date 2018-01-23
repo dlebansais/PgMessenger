@@ -672,16 +672,22 @@ namespace PgMessenger
 
             FormUrlEncodedContent Content = new FormUrlEncodedContent(Values);
 
-            Task<HttpResponseMessage> PostTask = ConnectionClient.PostAsync(ConnectionAddress + "keep_alive_form.php", Content);
-            if (PostTask.Wait(2000))
+            try
             {
-                HttpResponseMessage Response = PostTask.Result;
-
-                Task<string> ReadTask = Response.Content.ReadAsStringAsync();
-                if (ReadTask.Wait(2000))
+                Task<HttpResponseMessage> PostTask = ConnectionClient.PostAsync(ConnectionAddress + "keep_alive_form.php", Content);
+                if (PostTask.Wait(2000))
                 {
-                    string Result = ReadTask.Result;
+                    HttpResponseMessage Response = PostTask.Result;
+
+                    Task<string> ReadTask = Response.Content.ReadAsStringAsync();
+                    if (ReadTask.Wait(2000))
+                    {
+                        string Result = ReadTask.Result;
+                    }
                 }
+            }
+            catch
+            {
             }
         }
 
