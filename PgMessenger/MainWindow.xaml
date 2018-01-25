@@ -24,6 +24,8 @@
         <RoutedUICommand x:Key="CloseCommand"/>
         <RoutedUICommand x:Key="RestoreWindowCommand"/>
         <RoutedUICommand x:Key="SettingsCommand"/>
+        <RoutedUICommand x:Key="ClearAllCommand"/>
+        <RoutedUICommand x:Key="ClearAllButLastHourCommand"/>
         <RoutedUICommand x:Key="ExitCommand"/>
         <BitmapImage x:Key="imgClose" UriSource="Resources/Close.png"/>
         <CompositeCollection x:Key="NormalBold">
@@ -69,12 +71,34 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <ContextMenu x:Key="ClearMenu">
+            <ContextMenu.Resources>
+                <Style TargetType="{x:Type MenuItem}">
+                    <Setter Property="ItemsPanel">
+                        <Setter.Value>
+                            <ItemsPanelTemplate>
+                                <StackPanel Background="{StaticResource {x:Static SystemColors.MenuBarBrushKey}}" Margin="-20,0,0,0"/>
+                            </ItemsPanelTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ContextMenu.Resources>
+            <MenuItem Header="Clear">
+                <MenuItem.Icon>
+                    <Image Source="Resources/Cut.ico"/>
+                </MenuItem.Icon>
+                <MenuItem Header="All" Command="{StaticResource ClearAllCommand}"/>
+                <MenuItem Header="All but last hour" Command="{StaticResource ClearAllButLastHourCommand}"/>
+            </MenuItem>
+        </ContextMenu>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="{StaticResource LoadAtStartupCommand}" Executed="OnLoadAtStartup"/>
         <CommandBinding Command="{StaticResource CloseCommand}" Executed="OnClose"/>
         <CommandBinding Command="{StaticResource RestoreWindowCommand}" Executed="OnRestoreWindow"/>
         <CommandBinding Command="{StaticResource SettingsCommand}" Executed="OnSettings"/>
+        <CommandBinding Command="{StaticResource ClearAllCommand}" Executed="OnClearAll"/>
+        <CommandBinding Command="{StaticResource ClearAllButLastHourCommand}" Executed="OnClearAllButLastHour"/>
         <CommandBinding Command="{StaticResource ExitCommand}" Executed="OnExit"/>
     </Window.CommandBindings>
     <WindowChrome.WindowChrome>
@@ -195,9 +219,11 @@
                     </WrapPanel>
                 </DockPanel>
                 <Separator DockPanel.Dock="Bottom" Margin="0,5,0,5"/>
-                <ScrollViewer x:Name="scrollMessages" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#2A1E1B" Padding="0,2,0,2">
-                    <ItemsControl ItemsSource="{Binding GlobalMessageList}" ItemTemplate="{StaticResource LogEntryTemplate}"/>
-                </ScrollViewer>
+                <Grid ContextMenu="{StaticResource ClearMenu}">
+                    <ScrollViewer x:Name="scrollMessages" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#2A1E1B" Padding="0,2,0,2">
+                        <ItemsControl ItemsSource="{Binding GlobalMessageList}" ItemTemplate="{StaticResource LogEntryTemplate}"/>
+                    </ScrollViewer>
+                </Grid>
             </DockPanel>
         </Border>
         <Button HorizontalAlignment="Right" VerticalAlignment="Top" Command="{StaticResource CloseCommand}" BorderBrush="{x:Null}" BorderThickness="0" Background="White" FocusVisualStyle="{x:Null}" Margin="0,7,9,0">

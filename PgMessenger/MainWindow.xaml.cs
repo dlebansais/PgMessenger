@@ -369,6 +369,18 @@ namespace PgMessenger
             NotifyPropertyChanged(nameof(IsUpdateAvailable));
         }
 
+        private void OnClearAll(object sender, ExecutedRoutedEventArgs e)
+        {
+            GlobalMessageList.Clear();
+        }
+
+        private void OnClearAllButLastHour(object sender, ExecutedRoutedEventArgs e)
+        {
+            DateTime Now = DateTime.UtcNow;
+            while (GlobalMessageList.Count > 0 && GlobalMessageList[0].LogTime < Now)
+                GlobalMessageList.RemoveAt(0);
+        }
+
         private void OnClose(object sender, ExecutedRoutedEventArgs e)
         {
             (Application.Current as App).OnClose();
