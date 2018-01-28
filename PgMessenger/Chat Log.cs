@@ -354,6 +354,12 @@ namespace PgMessenger
                         return;
                 }
             }
+            else if (Type == ChannelType.Global)
+            {
+                if (Message.StartsWith("(SYSTEM) [Announcement]: Updating your character") ||
+                    Message.StartsWith("(SYSTEM) [Announcement]: Done upgrading your character"))
+                    return;
+            }
 
             if (Type == ChannelType.Global || Type == ChannelType.Help || Type == ChannelType.Trade || Type == ChannelType.Guild)
                 App.UploadLog(LoginName != null ? LoginName : "", Type.ToString(), Message, Hash);
