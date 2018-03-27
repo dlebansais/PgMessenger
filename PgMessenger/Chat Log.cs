@@ -311,7 +311,7 @@ namespace PgMessenger
                 if (string.IsNullOrEmpty(LoginName))
                     return;
 
-                if (Message.StartsWith("(SYSTEM)"))
+                if (Message.StartsWith("(SYSTEM)") || Message.StartsWith("-SYSTEM-"))
                 {
                     if (Message[Message.Length - 1] == '"')
                         Message = Message.Substring(0, Message.Length - 1);
