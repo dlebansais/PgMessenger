@@ -868,6 +868,9 @@ namespace PgMessenger
 
             try
             {
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
                 HttpWebRequest Request = WebRequest.Create(ReleasePageAddress) as HttpWebRequest;
                 using (WebResponse Response = Request.GetResponse())
                 {
