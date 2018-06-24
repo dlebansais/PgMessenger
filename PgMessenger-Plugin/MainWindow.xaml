@@ -1,0 +1,225 @@
+﻿<Window x:Class="PgMessenger.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:conv="clr-namespace:Converters"
+        xmlns:app="clr-namespace:PgMessenger"
+        Icon="pack://application:,,,/Resources/main.ico"
+        Title="Project: Gorgon - Messenger"
+        ResizeMode="CanResize"
+        SizeToContent="WidthAndHeight"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseLeftButtonDown="OnMouseLeftButtonDown"
+        MinWidth="780"
+        MinHeight="300"
+        Closed="OnClosed">
+    <Window.Resources>
+        <conv:BooleanToObjectConverter x:Key="convBooleanToObject"/>
+        <conv:ChannelToObjectConverter x:Key="convChannelToObject"/>
+        <conv:CountToObjectConverter x:Key="convCountToObject"/>
+        <conv:NullToObjectConverter x:Key="convNullToObject"/>
+        <RoutedUICommand x:Key="CloseCommand"/>
+        <RoutedUICommand x:Key="ClearAllCommand"/>
+        <RoutedUICommand x:Key="ClearAllButLastHourCommand"/>
+        <BitmapImage x:Key="imgClose" UriSource="Resources/Close.png"/>
+        <CompositeCollection x:Key="NormalBold">
+            <FontWeight>Normal</FontWeight>
+            <FontWeight>Bold</FontWeight>
+        </CompositeCollection>
+        <CompositeCollection x:Key="ChannelColors">
+            <SolidColorBrush>#C72A2A</SolidColorBrush>
+            <SolidColorBrush>#A4A4E3</SolidColorBrush>
+            <SolidColorBrush>#F9F9F9</SolidColorBrush>
+            <SolidColorBrush>#F9F9F9</SolidColorBrush>
+            <SolidColorBrush>#71BAF2</SolidColorBrush>
+            <SolidColorBrush>#E4A56E</SolidColorBrush>
+            <SolidColorBrush>#E4A56E</SolidColorBrush>
+            <SolidColorBrush>#E4A56E</SolidColorBrush>
+            <SolidColorBrush>#C72A2A</SolidColorBrush>
+        </CompositeCollection>
+        <SolidColorBrush x:Key="ItemColor">#E97BEF</SolidColorBrush>
+        <CompositeCollection x:Key="FalseTrue">
+            <sys:Boolean>False</sys:Boolean>
+            <sys:Boolean>True</sys:Boolean>
+        </CompositeCollection>
+        <CompositeCollection x:Key="CollapsedVisible">
+            <Visibility>Collapsed</Visibility>
+            <Visibility>Visible</Visibility>
+        </CompositeCollection>
+        <CompositeCollection x:Key="VisibleCollapsed">
+            <Visibility>Visible</Visibility>
+            <Visibility>Collapsed</Visibility>
+        </CompositeCollection>
+        <CompositeCollection x:Key="HiddenVisible">
+            <Visibility>Hidden</Visibility>
+            <Visibility>Visible</Visibility>
+        </CompositeCollection>
+        <CompositeCollection x:Key="VisibleHidden">
+            <Visibility>Visible</Visibility>
+            <Visibility>Hidden</Visibility>
+        </CompositeCollection>
+        <Style TargetType="{x:Type TextBlock}">
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{StaticResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <ContextMenu x:Key="ClearMenu">
+            <ContextMenu.Resources>
+                <Style TargetType="{x:Type MenuItem}">
+                    <Setter Property="ItemsPanel">
+                        <Setter.Value>
+                            <ItemsPanelTemplate>
+                                <StackPanel Background="{StaticResource {x:Static SystemColors.MenuBarBrushKey}}" Margin="-20,0,0,0"/>
+                            </ItemsPanelTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ContextMenu.Resources>
+            <MenuItem Header="Clear">
+                <MenuItem.Icon>
+                    <Image Source="Resources/Cut.ico"/>
+                </MenuItem.Icon>
+                <MenuItem Header="All" Command="{StaticResource ClearAllCommand}"/>
+                <MenuItem Header="All but last hour" Command="{StaticResource ClearAllButLastHourCommand}"/>
+            </MenuItem>
+        </ContextMenu>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource CloseCommand}" Executed="OnClose"/>
+        <CommandBinding Command="{StaticResource ClearAllCommand}" Executed="OnClearAll"/>
+        <CommandBinding Command="{StaticResource ClearAllButLastHourCommand}" Executed="OnClearAllButLastHour"/>
+    </Window.CommandBindings>
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="5" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Border BorderBrush="DarkGray" BorderThickness="5" CornerRadius="5" Background="White">
+            <DockPanel Margin="5,5,5,0">
+                <DockPanel.Resources>
+                    <DataTemplate x:Key="LogEntryTemplate">
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel.LayoutTransform>
+                                <ScaleTransform CenterX="0" CenterY="0" ScaleX="{Binding ElementName=sliderZoom, Path=Value, FallbackValue=1.5}" ScaleY="{Binding ElementName=sliderZoom, Path=Value, FallbackValue=1.5}"/>
+                            </StackPanel.LayoutTransform>
+                            <TextBlock Text="{Binding LogTime}" TextAlignment="Right" Foreground="White" Width="130" Margin="0,0,5,0"/>
+                            <StackPanel Orientation="Horizontal" Width="42" Margin="0,0,5,0">
+                                <TextBlock Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}">[</TextBlock>
+                                <TextBlock Text="{Binding Type}" Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}"/>
+                                <TextBlock Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}">]</TextBlock>
+                            </StackPanel>
+                            <StackPanel>
+                                <StackPanel.Resources>
+                                    <DataTemplate x:Key="ItemTemplate">
+                                        <TextBlock Text="{Binding}" Foreground="{StaticResource ItemColor}" Margin="0,0,5,0"/>
+                                    </DataTemplate>
+                                </StackPanel.Resources>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Author}" Foreground="#C5B802"/>
+                                    <TextBlock Foreground="#C5B802">:</TextBlock>
+                                    <TextBox Text="{Binding Message, Mode=OneWay}" IsReadOnly="True" Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}" BorderThickness="0" BorderBrush="{x:Null}" Background="#2A1E1B" Margin="0,0,5,0"/>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding ItemList}" ItemTemplate="{StaticResource ItemTemplate}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                    <DataTemplate x:Key="GuildmateTemplate">
+                        <Grid Margin="5,0,0,0">
+                            <TextBlock Text="{Binding Name}" Visibility="{Binding IsConnected, Converter={StaticResource convBooleanToObject}, ConverterParameter={StaticResource HiddenVisible}}" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Name}" Visibility="{Binding IsConnected, Converter={StaticResource convBooleanToObject}, ConverterParameter={StaticResource VisibleHidden}}"/>
+                        </Grid>
+                    </DataTemplate>
+                </DockPanel.Resources>
+                <DockPanel DockPanel.Dock="Top" LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="10,0,30,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock>v</TextBlock>
+                            <TextBlock Text="{Binding CurrentVersion}"/>
+                        </StackPanel>
+                        <TextBlock Margin="10,0,0,0" Visibility="{Binding IsUpdateAvailable, Converter={StaticResource convBooleanToObject}, ConverterParameter={StaticResource CollapsedVisible}, FallbackValue=Collapsed}" VerticalAlignment="Center">
+                            <Hyperlink RequestNavigate="OnRequestNavigate" NavigateUri="unused">
+                                <TextBlock>Update available</TextBlock>
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                    <WrapPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding RegisteredUserCount}" TextAlignment="Right" MinWidth="20" Margin="0,0,5,0"/>
+                            <TextBlock>Registered User(s),</TextBlock>
+                            <TextBlock Text="{Binding ConnectedUserCount}" TextAlignment="Right" MinWidth="20" Margin="10,0,5,0"/>
+                            <TextBlock>Connected,</TextBlock>
+                            <TextBlock Text="{Binding GuestUserCount}" TextAlignment="Right" MinWidth="20" Margin="10,0,5,0"/>
+                            <TextBlock>Guest(s)</TextBlock>
+                        </StackPanel>
+                        <Grid VerticalAlignment="Center" Width="220" Margin="10,0,0,0">
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding LoginName, Converter={StaticResource convNullToObject}, ConverterParameter={StaticResource VisibleHidden}, FallbackValue=Visible}" VerticalAlignment="Center">
+                                <TextBlock>You are not online</TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding LoginName, Converter={StaticResource convNullToObject}, ConverterParameter={StaticResource HiddenVisible}, FallbackValue=Hidden}" VerticalAlignment="Center">
+                                <TextBlock>You are online as:</TextBlock>
+                                <TextBlock Text="{Binding LoginName}" FontWeight="Bold" Margin="5,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                        <DockPanel VerticalAlignment="Center" Margin="10,0,20,0">
+                            <TextBlock>Guildmates:</TextBlock>
+                            <ItemsControl ItemsSource="{Binding GuildmateList}" ItemTemplate="{StaticResource GuildmateTemplate}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </DockPanel>
+                    </WrapPanel>
+                </DockPanel>
+                <Separator DockPanel.Dock="Top" Margin="0,5,0,5"/>
+                <DockPanel DockPanel.Dock="Bottom" Margin="5,0,5,5">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock VerticalAlignment="Center">Zoom:</TextBlock>
+                        <TextBlock Text="{Binding ElementName=sliderZoom, Path=Value}" VerticalAlignment="Center" Width="15" Margin="5,0,10,0"/>
+                        <Slider x:Name="sliderZoom" Minimum="1" Maximum="5" TickFrequency="0.5" IsSnapToTickEnabled="True" TickPlacement="Both" Value="{Binding MessageZoom}" VerticalAlignment="Center" Width="110"/>
+                    </StackPanel>
+                    <WrapPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <CheckBox IsChecked="{Binding AutoScroll}" VerticalAlignment="Center" Margin="0,0,10,0">Auto Scroll To Bottom</CheckBox>
+                            <CheckBox IsChecked="{Binding Topmost}" VerticalAlignment="Center" Margin="0,0,10,0">Stay At Top</CheckBox>
+                            <CheckBox IsChecked="{Binding HideSpoilers}" VerticalAlignment="Center" Margin="0,0,10,0">Hide Spoilers</CheckBox>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="{Binding GuildList.Count, Converter={StaticResource convCountToObject}, ConverterParameter={StaticResource FalseTrue}, FallbackValue=False}" Margin="10,0,0,0">
+                                <TextBlock VerticalAlignment="Center" Text="Guild Chat:"/>
+                                <ComboBox ItemsSource="{Binding GuildList}" SelectedIndex="{Binding SelectedGuild}" IsReadOnly="True" VerticalAlignment="Center" MinWidth="150" Margin="5,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Grid VerticalAlignment="Center" Margin="0,0,10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" IsChecked="{Binding DisplayGlobal}" VerticalAlignment="Center" Margin="0,0,10,0">Global</CheckBox>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding DisplayHelp}" VerticalAlignment="Center" Margin="0,0,10,0">Help</CheckBox>
+                            <CheckBox Grid.Column="2" IsChecked="{Binding DisplayTrade}" VerticalAlignment="Center" Margin="0,0,10,0">Trade</CheckBox>
+                        </Grid>
+                    </WrapPanel>
+                </DockPanel>
+                <Separator DockPanel.Dock="Bottom" Margin="0,5,0,5"/>
+                <Grid ContextMenu="{StaticResource ClearMenu}">
+                    <ScrollViewer x:Name="scrollMessages" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#2A1E1B" Padding="0,2,0,2">
+                        <ItemsControl ItemsSource="{Binding GlobalMessageList}" ItemTemplate="{StaticResource LogEntryTemplate}"/>
+                    </ScrollViewer>
+                </Grid>
+            </DockPanel>
+        </Border>
+        <Button HorizontalAlignment="Right" VerticalAlignment="Top" Command="{StaticResource CloseCommand}" BorderBrush="{x:Null}" BorderThickness="0" Background="White" FocusVisualStyle="{x:Null}" Margin="0,7,9,0">
+            <Image Source="{StaticResource imgClose}" Width="13" Height="13"/>
+        </Button>
+    </Grid>
+</Window>

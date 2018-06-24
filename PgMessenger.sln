@@ -1,28 +1,37 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PgMessenger", "PgMessenger\PgMessenger.csproj", "{7318B627-56DB-4E8C-9A74-0F373A0563B5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PgMessenger-Plugin", "PgMessenger-Plugin\PgMessenger-Plugin.csproj", "{91DF0A17-BE03-46B1-8C2A-F21065F60581}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SinglePluginHost", "SinglePluginHost\SinglePluginHost.csproj", "{1AA662FD-9DDE-4638-B2B5-2367268B5B96}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
-		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7318B627-56DB-4E8C-9A74-0F373A0563B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7318B627-56DB-4E8C-9A74-0F373A0563B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7318B627-56DB-4E8C-9A74-0F373A0563B5}.Debug|x64.ActiveCfg = Debug|x64
 		{7318B627-56DB-4E8C-9A74-0F373A0563B5}.Debug|x64.Build.0 = Debug|x64
-		{7318B627-56DB-4E8C-9A74-0F373A0563B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7318B627-56DB-4E8C-9A74-0F373A0563B5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7318B627-56DB-4E8C-9A74-0F373A0563B5}.Release|x64.ActiveCfg = Release|x64
 		{7318B627-56DB-4E8C-9A74-0F373A0563B5}.Release|x64.Build.0 = Release|x64
+		{91DF0A17-BE03-46B1-8C2A-F21065F60581}.Debug|x64.ActiveCfg = Debug|x64
+		{91DF0A17-BE03-46B1-8C2A-F21065F60581}.Debug|x64.Build.0 = Debug|x64
+		{91DF0A17-BE03-46B1-8C2A-F21065F60581}.Release|x64.ActiveCfg = Release|x64
+		{91DF0A17-BE03-46B1-8C2A-F21065F60581}.Release|x64.Build.0 = Release|x64
+		{1AA662FD-9DDE-4638-B2B5-2367268B5B96}.Debug|x64.ActiveCfg = Debug|x64
+		{1AA662FD-9DDE-4638-B2B5-2367268B5B96}.Debug|x64.Build.0 = Debug|x64
+		{1AA662FD-9DDE-4638-B2B5-2367268B5B96}.Release|x64.ActiveCfg = Release|x64
+		{1AA662FD-9DDE-4638-B2B5-2367268B5B96}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8D14FCEF-468B-4218-8C0D-28358BF68095}
 	EndGlobalSection
 EndGlobal
