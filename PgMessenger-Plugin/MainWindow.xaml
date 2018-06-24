@@ -87,6 +87,44 @@
                 <MenuItem Header="All but last hour" Command="{StaticResource ClearAllButLastHourCommand}"/>
             </MenuItem>
         </ContextMenu>
+        <DataTemplate x:Key="LogEntryTemplate">
+            <StackPanel Orientation="Horizontal">
+                <StackPanel.LayoutTransform>
+                    <ScaleTransform x:Name="transform" CenterX="0" CenterY="0" ScaleX="{Binding ElementName=sliderZoom, Path=Value, FallbackValue=1.5}" ScaleY="{Binding ElementName=sliderZoom, Path=Value, FallbackValue=1.5}"/>
+                </StackPanel.LayoutTransform>
+                <TextBlock Text="{Binding LogTime}" TextAlignment="Right" Foreground="White" Width="130" Margin="0,0,5,0"/>
+                <StackPanel Orientation="Horizontal" Width="42" Margin="0,0,5,0">
+                    <TextBlock Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}">[</TextBlock>
+                    <TextBlock Text="{Binding Type}" Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}"/>
+                    <TextBlock Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}">]</TextBlock>
+                </StackPanel>
+                <StackPanel>
+                    <StackPanel.Resources>
+                        <DataTemplate x:Key="ItemTemplate">
+                            <TextBlock Text="{Binding}" Foreground="{StaticResource ItemColor}" Margin="0,0,5,0"/>
+                        </DataTemplate>
+                    </StackPanel.Resources>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Author}" Foreground="#C5B802"/>
+                        <TextBlock Foreground="#C5B802">:</TextBlock>
+                        <TextBox Text="{Binding Message, Mode=OneWay}" IsReadOnly="True" Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}" BorderThickness="0" BorderBrush="{x:Null}" Background="#2A1E1B" Margin="0,0,5,0"/>
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding ItemList}" ItemTemplate="{StaticResource ItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="GuildmateTemplate">
+            <Grid Margin="5,0,0,0">
+                <TextBlock Text="{Binding Name}" Visibility="{Binding IsConnected, Converter={StaticResource convBooleanToObject}, ConverterParameter={StaticResource HiddenVisible}}" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Name}" Visibility="{Binding IsConnected, Converter={StaticResource convBooleanToObject}, ConverterParameter={StaticResource VisibleHidden}}"/>
+            </Grid>
+        </DataTemplate>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="{StaticResource CloseCommand}" Executed="OnClose"/>
@@ -99,46 +137,6 @@
     <Grid>
         <Border BorderBrush="DarkGray" BorderThickness="5" CornerRadius="5" Background="White">
             <DockPanel Margin="5,5,5,0">
-                <DockPanel.Resources>
-                    <DataTemplate x:Key="LogEntryTemplate">
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel.LayoutTransform>
-                                <ScaleTransform CenterX="0" CenterY="0" ScaleX="{Binding ElementName=sliderZoom, Path=Value, FallbackValue=1.5}" ScaleY="{Binding ElementName=sliderZoom, Path=Value, FallbackValue=1.5}"/>
-                            </StackPanel.LayoutTransform>
-                            <TextBlock Text="{Binding LogTime}" TextAlignment="Right" Foreground="White" Width="130" Margin="0,0,5,0"/>
-                            <StackPanel Orientation="Horizontal" Width="42" Margin="0,0,5,0">
-                                <TextBlock Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}">[</TextBlock>
-                                <TextBlock Text="{Binding Type}" Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}"/>
-                                <TextBlock Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}">]</TextBlock>
-                            </StackPanel>
-                            <StackPanel>
-                                <StackPanel.Resources>
-                                    <DataTemplate x:Key="ItemTemplate">
-                                        <TextBlock Text="{Binding}" Foreground="{StaticResource ItemColor}" Margin="0,0,5,0"/>
-                                    </DataTemplate>
-                                </StackPanel.Resources>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Author}" Foreground="#C5B802"/>
-                                    <TextBlock Foreground="#C5B802">:</TextBlock>
-                                    <TextBox Text="{Binding Message, Mode=OneWay}" IsReadOnly="True" Foreground="{Binding Type, Converter={StaticResource convChannelToObject}, ConverterParameter={StaticResource ChannelColors}}" BorderThickness="0" BorderBrush="{x:Null}" Background="#2A1E1B" Margin="0,0,5,0"/>
-                                </StackPanel>
-                                <ItemsControl ItemsSource="{Binding ItemList}" ItemTemplate="{StaticResource ItemTemplate}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
-                            </StackPanel>
-                        </StackPanel>
-                    </DataTemplate>
-                    <DataTemplate x:Key="GuildmateTemplate">
-                        <Grid Margin="5,0,0,0">
-                            <TextBlock Text="{Binding Name}" Visibility="{Binding IsConnected, Converter={StaticResource convBooleanToObject}, ConverterParameter={StaticResource HiddenVisible}}" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding Name}" Visibility="{Binding IsConnected, Converter={StaticResource convBooleanToObject}, ConverterParameter={StaticResource VisibleHidden}}"/>
-                        </Grid>
-                    </DataTemplate>
-                </DockPanel.Resources>
                 <DockPanel DockPanel.Dock="Top" LastChildFill="False">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="10,0,30,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
