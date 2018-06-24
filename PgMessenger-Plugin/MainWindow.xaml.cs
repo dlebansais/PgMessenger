@@ -25,16 +25,22 @@ namespace PgMessenger
         PgMessengerPlugin Plugin;
         public MainWindow(PgMessengerPlugin plugin)
         {
-            InitializeComponent();
-            DataContext = this;
+            try
+            {
+                InitializeComponent();
+                DataContext = this;
 
-            Plugin = plugin;
-            Settings = Plugin.Settings;
-            LastClosedTime = DateTime.MinValue;
+                Plugin = plugin;
+                Settings = Plugin.Settings;
+                LastClosedTime = DateTime.MinValue;
 
-            InitLocation();
-            InitSettings();
-            InitLogEntries();
+                InitLocation();
+                InitSettings();
+                InitLogEntries();
+            }
+            catch
+            {
+            }
         }
 
         private void InitLocation()
@@ -64,8 +70,16 @@ namespace PgMessenger
         {
             get
             {
-                try { return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion; }
-                catch { return ""; }
+                try
+                {
+                    Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
+                    AssemblyFileVersionAttribute FileVersion = CurrentAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+                    return FileVersion.Version;
+                }
+                catch
+                {
+                    return "";
+                }
             }
         }
 
@@ -142,8 +156,8 @@ namespace PgMessenger
                     _AutoScroll = value;
                     NotifyThisPropertyChanged();
 
-                    if (_AutoScroll)
-                        scrollMessages.ScrollToBottom();
+                    /*if (_AutoScroll)
+                        scrollMessages.ScrollToBottom();*/
                 }
             }
         }
@@ -329,8 +343,8 @@ namespace PgMessenger
             {
                 if (ChatLineList.Count == 0)
                 {
-                    if (AutoScroll)
-                        scrollMessages.ScrollToBottom();
+                    /*if (AutoScroll)
+                        scrollMessages.ScrollToBottom();*/
                     return;
                 }
 
