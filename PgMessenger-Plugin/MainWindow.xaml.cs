@@ -156,8 +156,8 @@ namespace PgMessenger
                     _AutoScroll = value;
                     NotifyThisPropertyChanged();
 
-                    /*if (_AutoScroll)
-                        scrollMessages.ScrollToBottom();*/
+                    if (_AutoScroll)
+                        scrollMessages.ScrollToBottom();
                 }
             }
         }
@@ -343,8 +343,8 @@ namespace PgMessenger
             {
                 if (ChatLineList.Count == 0)
                 {
-                    /*if (AutoScroll)
-                        scrollMessages.ScrollToBottom();*/
+                    if (AutoScroll)
+                        scrollMessages.ScrollToBottom();
                     return;
                 }
 

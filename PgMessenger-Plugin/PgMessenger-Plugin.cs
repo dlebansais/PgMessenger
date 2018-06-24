@@ -49,6 +49,7 @@ namespace PgMessenger
 
             InitUpdate();
             LastReadIndex = -1;
+            LoadSettings();
 
             MainPopup = new MainWindow(this);
             MainPopup.UpdateGuildList(CharacterList);
@@ -174,6 +175,7 @@ namespace PgMessenger
         public void BeginClose()
         {
             MainPopup.Close();
+            SaveSettings();
 
             using (MainWindow Popup = MainPopup)
             {
