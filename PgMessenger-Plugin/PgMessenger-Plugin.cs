@@ -17,7 +17,7 @@ using TaskbarIconHost;
 
 namespace PgMessenger
 {
-    public class PgMessengerPlugin : MarshalByRefObject, TaskbarIconHost.IPluginClient
+    public class PgMessengerPlugin : TaskbarIconHost.IPluginClient
     {
         #region Plugin
         public string Name
