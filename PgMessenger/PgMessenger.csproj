@@ -38,7 +38,7 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\_Main.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\main.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Win32.TaskScheduler">
@@ -141,7 +141,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\_Main.ico" />
+    <Resource Include="Resources\main.ico" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Taskbar.ico" />
