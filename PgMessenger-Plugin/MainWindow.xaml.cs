@@ -33,6 +33,7 @@ namespace PgMessenger
                 Plugin = plugin;
                 Settings = Plugin.Settings;
                 LastClosedTime = DateTime.MinValue;
+                Icon = ResourceTools.LoadEmbeddedIcon("main.ico");
 
                 InitLocation();
                 InitSettings();

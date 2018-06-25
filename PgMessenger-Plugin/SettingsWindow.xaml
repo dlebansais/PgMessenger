@@ -8,7 +8,6 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Width="560"
-        Icon="pack://application:,,,/Resources/main.ico"
         Title="Settings"
         Closed="OnClosed">
     <Window.Resources>

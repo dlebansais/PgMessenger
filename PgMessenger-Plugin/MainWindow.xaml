@@ -3,8 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:conv="clr-namespace:Converters"
-        xmlns:app="clr-namespace:PgMessenger"
-        Icon="pack://application:,,,/Resources/main.ico"
         Title="Project: Gorgon - Messenger"
         ResizeMode="CanResize"
         SizeToContent="WidthAndHeight"
