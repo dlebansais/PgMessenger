@@ -1,5 +1,5 @@
 # What is PgMessenger?
-PgMessenger is a Windows program (download [here](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.89/PgMessenger.zip)) that let you read the game chat of *Project: Gorgon* on any computer.
+PgMessenger is a Windows program (download [here](https://github.com/dlebansais/PgMessenger/releases)) that let you read the game chat of *Project: Gorgon* on any computer.
 
 ![Screenshot](/Doc/Screenshot.png?raw=true "Screenshot Example")
 
@@ -17,14 +17,14 @@ To contribute and send updates to others, follow these instructions:
 
 ![LogChat](/Doc/GameSettings.png?raw=true "The Settings window")
 
-2. [Download](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.89/PgMessenger.zip) and extract PgMessenger.zip somewhere on your computer.
+2. [Download](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.111/PgMessenger.exe) the application somewhere on your computer.
 3. Run PgMessenger.exe, this will add a little icon in the task bar, possibly in the taskbar icon window depending on your version of Windows and settings.
 4. Right-click the icon to bring up a menu and choose **Load At Startup**.
 5. The dialog box that pops up gives you the two options that can set PgMessenger to load at startup: either run the program as administrator (never recommended, unless you really trust me), or follow specific instructions. You could start the program manually every time too but it's quite annoying.
 6. Right-click the icon again and select **Settings** to bring the PgMessenger settings window up. This is where you decide if you want to log guild chat, and if you do what are the guild affiliations of your characters (this is not in logs). The [guild chat](#guild-chat) section has more info about these settings.
 6. Make sure you quit and restart the game client, PgMessenger needs to capture chat log when you log in.
 
-If you just want to read in-game chat, [download](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.89/PgMessenger.zip) and extract PgMessenger.zip, then run PgMessenger.exe.
+If you just want to read in-game chat, [download](https://github.com/dlebansais/PgMessenger/releases/download/v1.0.0.111/PgMessenger.exe) and run PgMessenger.exe.
 
 # Guild chat
 The guild chat is particularly challenging to get right because of obvious privacy issues. One significant challenge is to not make this chat readable to anyone outside the guild (notably me, the developer of this), while allowing guild mates to read it from any computer. I will describe here how it is done.
