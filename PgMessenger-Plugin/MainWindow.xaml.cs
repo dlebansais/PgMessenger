@@ -439,8 +439,8 @@ namespace PgMessenger
             Process UpdateProcess = Process.Start(Plugin.UpdateLink);
             UpdateProcess.WaitForExit(3000);
 
-            /*if (CloseApplication)
-                (Application.Current as App).OnExit();*/
+            if (CloseApplication)
+                Application.Current.Shutdown();
         }
 
         private DateTime LastClosedTime;

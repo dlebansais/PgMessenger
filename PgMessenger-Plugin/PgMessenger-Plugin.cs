@@ -695,7 +695,7 @@ namespace PgMessenger
                                             break;
                                         else if (UpdateValue > CurrentValue)
                                         {
-                                            UpdateLink = "https://github.com/dlebansais/PgMessenger/releases/download/" + UpdateTagVersion + "/PgMessenger.zip";
+                                            UpdateLink = "https://github.com/dlebansais/PgMessenger/releases/download/" + UpdateTagVersion + "/PgMessenger.exe";
                                             break;
                                         }
                                     }
