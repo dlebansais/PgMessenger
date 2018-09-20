@@ -848,7 +848,7 @@ namespace PgMessenger
             return true;
         }
 
-        private static string ConnectionAddress = "http://www.enu.numbatsoft.com/pgmessenger/";
+        private static string ConnectionAddress = "https://www.numbatsoft.com/pgmessenger/";
         private static readonly HttpClient ConnectionClient = new HttpClient();
         private static int LastReadIndex;
         #endregion

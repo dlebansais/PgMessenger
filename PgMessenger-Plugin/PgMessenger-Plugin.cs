@@ -54,6 +54,12 @@ namespace PgMessenger
             MainPopup = new MainWindow(this);
             MainPopup.UpdateGuildList(CharacterList);
 
+            InitializeCommand("Show",
+                              isVisibleHandler: () => true,
+                              isEnabledHandler: () => true,
+                              isCheckedHandler: () => false,
+                              commandHandler: OnCommandShowWindow);
+
             InitializeCommand("Restore Window",
                               isVisibleHandler: () => true,
                               isEnabledHandler: () => true,
@@ -235,6 +241,11 @@ namespace PgMessenger
         #endregion
 
         #region Command Handlers
+        private void OnCommandShowWindow()
+        {
+            MainPopup.OnCommandShowWindow();
+        }
+
         private void OnCommandRestoreWindow()
         {
             MainPopup.OnCommandRestoreWindow();
@@ -635,7 +646,7 @@ namespace PgMessenger
             return true;
         }
 
-        private string ConnectionAddress = "http://www.enu.numbatsoft.com/pgmessenger/";
+        private string ConnectionAddress = "https://www.numbatsoft.com/pgmessenger/";
         private readonly HttpClient ConnectionClient = new HttpClient();
         private int LastReadIndex;
         #endregion

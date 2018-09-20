@@ -393,17 +393,16 @@ namespace PgMessenger
 
         private bool IsToolTipChanged;
 
-        public void OnCommandRestoreWindow()
+        public void OnCommandShowWindow()
         {
-            Left = 0;
-            Top = 0;
-            Width = double.NaN;
-            Height = double.NaN;
-            SizeToContent = SizeToContent.WidthAndHeight;
-
             if (!IsVisible)
                 Show();
             Plugin.SetForeground(this);
+        }
+
+        public void OnCommandRestoreWindow()
+        {
+            OnCommandShowWindow();
         }
 
         public void OnCommandSettings()
@@ -425,6 +424,7 @@ namespace PgMessenger
 
         private void OnClose(object sender, ExecutedRoutedEventArgs e)
         {
+            SaveLocation();
             Hide();
         }
 
