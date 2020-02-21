@@ -1,22 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Threading;
-using TaskbarIconHost;
-
-namespace PgMessenger
+﻿namespace PgMessenger
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
+    using System.Diagnostics;
+    using System.Drawing;
+    using System.IO;
+    using System.Net;
+    using System.Net.Http;
+    using System.Reflection;
+    using System.Runtime.InteropServices;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Input;
+    using System.Windows.Interop;
+    using System.Windows.Threading;
+    using TaskbarIconHost;
+
     public class PgMessengerPlugin : TaskbarIconHost.IPluginClient
     {
         #region Plugin
@@ -72,6 +73,24 @@ namespace PgMessenger
                               isCheckedHandler: () => false,
                               commandHandler: OnCommandSettings);
 
+            InitializeCommand("-",
+                isVisibleHandler: () => IsLinkMenuVisible(0),
+                isEnabledHandler: () => true,
+                isCheckedHandler: () => false,
+                commandHandler: OnCommandClick0);
+
+            InitializeCommand("-",
+                isVisibleHandler: () => IsLinkMenuVisible(1),
+                isEnabledHandler: () => true,
+                isCheckedHandler: () => false,
+                commandHandler: OnCommandClick1);
+
+            InitializeCommand("-",
+                isVisibleHandler: () => IsLinkMenuVisible(2),
+                isEnabledHandler: () => true,
+                isCheckedHandler: () => false,
+                commandHandler: OnCommandClick2);
+
             InitChatLog();
         }
 
@@ -90,7 +109,42 @@ namespace PgMessenger
 
         public bool GetIsMenuChanged(bool beforeMenuOpening)
         {
-            return false;
+            bool Result = IsMenuChanged;
+            IsMenuChanged = false;
+
+            if (Result)
+            {
+                foreach (KeyValuePair<ICommand, Action> Entry in MenuHandlerTable)
+                {
+                    if (Entry.Value == OnCommandClick0)
+                        SetClickHeader(Entry.Key, 0);
+                    if (Entry.Value == OnCommandClick1)
+                        SetClickHeader(Entry.Key, 1);
+                    if (Entry.Value == OnCommandClick1)
+                        SetClickHeader(Entry.Key, 2);
+                }
+            }
+
+            return Result;
+        }
+
+        private void SetClickHeader(ICommand command, int index)
+        {
+            if (index >= CurrentChat.LinkList.Count)
+                return;
+
+            string Header = TruncateWithEllipsis(CurrentChat.LinkList[index]);
+            MenuHeaderTable[command] = Header;
+        }
+
+        private static string TruncateWithEllipsis(string s)
+        {
+            if (s.Length < 23)
+                return s;
+
+            string TruncatedString = s.Substring(0, 10) + "..." + s.Substring(s.Length - 10, 10);
+
+            return TruncatedString;
         }
 
         public string GetMenuHeader(ICommand Command)
@@ -101,6 +155,11 @@ namespace PgMessenger
         public bool GetMenuIsVisible(ICommand Command)
         {
             return MenuIsVisibleTable[Command]();
+        }
+
+        private bool IsLinkMenuVisible(int index)
+        {
+            return CurrentChat.LinkList.Count > index;
         }
 
         public bool GetMenuIsEnabled(ICommand Command)
@@ -229,6 +288,7 @@ namespace PgMessenger
         private Dictionary<ICommand, Func<bool>> MenuIsEnabledTable = new Dictionary<ICommand, Func<bool>>();
         private Dictionary<ICommand, Func<bool>> MenuIsCheckedTable = new Dictionary<ICommand, Func<bool>>();
         private Dictionary<ICommand, Action> MenuHandlerTable = new Dictionary<ICommand, Action>();
+        private bool IsMenuChanged;
         private bool IsToolTipChanged;
         #endregion
 
@@ -264,6 +324,40 @@ namespace PgMessenger
 
             MainPopup.OnCommandSettings();
         }
+
+        private void OnCommandClick0()
+        {
+            OnCommandClick(0);
+        }
+
+        private void OnCommandClick1()
+        {
+            OnCommandClick(1);
+        }
+
+        private void OnCommandClick2()
+        {
+            OnCommandClick(2);
+        }
+
+        private void OnCommandClick(int index)
+        {
+            if (index >= CurrentChat.LinkList.Count)
+                return;
+
+            string Link = CurrentChat.LinkList[index];
+
+            try
+            {
+                Process.Start(Link);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                Link = Link.Replace("&", "^&");
+                Process.Start(new ProcessStartInfo("cmd", $"/c start {Link}") { CreateNoWindow = true });
+            }
+        }
         #endregion
 
         #region Chat Log
@@ -272,6 +366,13 @@ namespace PgMessenger
             CurrentChat = new ChatLog(this, CustomLogFolder);
             CurrentChat.LoginNameChanged += OnLoginNameChanged;
             CurrentChat.StartLogging();
+
+            CurrentChat.LinkList.CollectionChanged += OnLinkListChanged;
+        }
+        
+        private void OnLinkListChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            IsMenuChanged = true;
         }
 
         private void OnLoginNameChanged(object sender, EventArgs e)

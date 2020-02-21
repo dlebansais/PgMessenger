@@ -1,12 +1,13 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-
-namespace PgMessenger
+﻿namespace PgMessenger
 {
+    using System;
+    using System.Collections.ObjectModel;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Runtime.InteropServices;
+    using System.Text;
+    using System.Threading;
+
     public class ChatLog : IDisposable
     {
         #region Constants
@@ -262,6 +263,8 @@ namespace PgMessenger
             string Message = Line.Substring(Index + 1).Trim();
             ChannelType Type = StringToChannelType(Channel);
 
+            ParseLink(Message);
+
             switch (Type)
             {
                 case ChannelType.Global:
@@ -368,6 +371,27 @@ namespace PgMessenger
             if (Type == ChannelType.Global || Type == ChannelType.Help || Type == ChannelType.Trade || Type == ChannelType.Guild)
                 Plugin.UploadLog(LoginName != null ? LoginName : "", Type.ToString(), Message, Hash);
         }
+
+        private void ParseLink(string message)
+        {
+            int Index = message.IndexOf("http://", StringComparison.InvariantCulture);
+            if (Index < 0)
+                Index = message.IndexOf("https://", StringComparison.InvariantCulture);
+            if (Index < 0)
+                return;
+
+            int LastIndex = message.IndexOf(" ", Index, StringComparison.InvariantCulture);
+            if (LastIndex < 0)
+                LastIndex = message.Length;
+
+            string Link = message.Substring(Index, LastIndex - Index);
+
+            if (LinkList.Count >= 3)
+                LinkList.RemoveAt(LinkList.Count - 1);
+            LinkList.Add(Link);
+        }
+
+        public ObservableCollection<string> LinkList { get; } = new ObservableCollection<string>();
 
         public void StopLogging()
         {
