@@ -14,10 +14,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PgMessengerPlugin</RootNamespace>
     <AssemblyName>PgMessenger-Plugin</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -56,7 +57,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="TaskbarIconShared, Version=1.0.0.54, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>TaskbarIconHost\TaskbarIconShared.dll</HintPath>
+      <HintPath>$(SolutionDir)dependencies\TaskbarIconShared\$(Platform)\$(Configuration)\TaskbarIconShared.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
@@ -94,7 +95,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\PgMessenger.png" />
     <EmbeddedResource Include="Resources\main.ico" />
-    <Content Include="TaskbarIconHost\TaskbarIconShared.dll" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="MainWindow.xaml">

@@ -7,6 +7,7 @@
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading;
+    using System.Windows.Threading;
 
     public class ChatLog : IDisposable
     {
@@ -19,11 +20,12 @@
         #region Init
         PgMessengerPlugin Plugin;
 
-        public ChatLog(PgMessengerPlugin plugin, string customLogFolder)
+        public ChatLog(PgMessengerPlugin plugin, string customLogFolder, Dispatcher dispatcher)
         {
             Plugin = plugin;
-
             CustomLogFolder = customLogFolder;
+            Dispatcher = dispatcher;
+
             LocalLogFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"ProjectGorgon\screenshots");
 
             Guid localLowId = new Guid("A520A1A4-1780-4FF6-BD18-167343C5AF16");
@@ -63,6 +65,7 @@
         public string SelectedLogFolder { get; private set; }
         public string OtherLogFolder { get; private set; }
         public string CustomLogFolder { get; private set; }
+        public Dispatcher Dispatcher { get; private set; }
         #endregion
 
         #region Client Interface
@@ -386,9 +389,38 @@
 
             string Link = message.Substring(Index, LastIndex - Index);
 
-            if (LinkList.Count >= 3)
-                LinkList.RemoveAt(LinkList.Count - 1);
-            LinkList.Add(Link);
+            if (!LinkList.Contains(Link))
+            {
+                while (LinkList.Count >= 3)
+                    LinkList.RemoveAt(0);
+                LinkList.Add(Link);
+
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<string>(ShowBalloon), Link);
+            }
+        }
+
+        private void ShowBalloon(string text)
+        {
+            TaskbarTools.TaskbarBalloon.Show(text, TimeSpan.FromSeconds(15), OnClicked, text);
+        }
+
+        private void OnClicked(object data)
+        {
+            LaunchBrowser(data as string);
+        }
+
+        public static void LaunchBrowser(string link)
+        {
+            try
+            {
+                Process.Start(link);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                link = link.Replace("&", "^&");
+                Process.Start(new ProcessStartInfo("cmd", $"/c start {link}") { CreateNoWindow = true });
+            }
         }
 
         public ObservableCollection<string> LinkList { get; } = new ObservableCollection<string>();

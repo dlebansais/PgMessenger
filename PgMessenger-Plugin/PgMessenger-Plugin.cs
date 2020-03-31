@@ -91,12 +91,13 @@
                 isCheckedHandler: () => false,
                 commandHandler: OnCommandClick2);
 
-            InitChatLog();
+            InitChatLog(dispatcher);
         }
 
         private void InitializeCommand(string header, Func<bool> isVisibleHandler, Func<bool> isEnabledHandler, Func<bool> isCheckedHandler, Action commandHandler)
         {
-            ICommand Command = new RoutedUICommand();
+            RoutedUICommand Command = new RoutedUICommand();
+            Command.Text = header;
             CommandList.Add(Command);
             MenuHeaderTable.Add(Command, header);
             MenuIsVisibleTable.Add(Command, isVisibleHandler);
@@ -120,7 +121,7 @@
                         SetClickHeader(Entry.Key, 0);
                     if (Entry.Value == OnCommandClick1)
                         SetClickHeader(Entry.Key, 1);
-                    if (Entry.Value == OnCommandClick1)
+                    if (Entry.Value == OnCommandClick2)
                         SetClickHeader(Entry.Key, 2);
                 }
             }
@@ -346,24 +347,14 @@
                 return;
 
             string Link = CurrentChat.LinkList[index];
-
-            try
-            {
-                Process.Start(Link);
-            }
-            catch
-            {
-                // hack because of this: https://github.com/dotnet/corefx/issues/10361
-                Link = Link.Replace("&", "^&");
-                Process.Start(new ProcessStartInfo("cmd", $"/c start {Link}") { CreateNoWindow = true });
-            }
+            ChatLog.LaunchBrowser(Link);
         }
         #endregion
 
         #region Chat Log
-        private void InitChatLog()
+        private void InitChatLog(Dispatcher dispatcher)
         {
-            CurrentChat = new ChatLog(this, CustomLogFolder);
+            CurrentChat = new ChatLog(this, CustomLogFolder, dispatcher);
             CurrentChat.LoginNameChanged += OnLoginNameChanged;
             CurrentChat.StartLogging();
 

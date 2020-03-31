@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-
-namespace PgMessenger
+﻿namespace PgMessenger
 {
+    using System;
+    using System.Collections.ObjectModel;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Runtime.InteropServices;
+    using System.Text;
+    using System.Threading;
+    using System.Windows.Threading;
+
     public class ChatLog : IDisposable
     {
         #region Constants
@@ -17,9 +18,11 @@ namespace PgMessenger
         #endregion
 
         #region Init
-        public ChatLog(string customLogFolder)
+        public ChatLog(string customLogFolder, Dispatcher dispatcher)
         {
             CustomLogFolder = customLogFolder;
+            Dispatcher = dispatcher;
+
             LocalLogFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"ProjectGorgon\screenshots");
 
             Guid localLowId = new Guid("A520A1A4-1780-4FF6-BD18-167343C5AF16");
@@ -59,6 +62,7 @@ namespace PgMessenger
         public string SelectedLogFolder { get; private set; }
         public string OtherLogFolder { get; private set; }
         public string CustomLogFolder { get; private set; }
+        public Dispatcher Dispatcher { get; private set; }
         #endregion
 
         #region Client Interface
@@ -382,9 +386,38 @@ namespace PgMessenger
 
             string Link = message.Substring(Index, LastIndex - Index);
 
-            if (LinkList.Count >= 3)
-                LinkList.RemoveAt(LinkList.Count - 1);
-            LinkList.Add(Link);
+            if (!LinkList.Contains(Link))
+            {
+                while (LinkList.Count >= 3)
+                    LinkList.RemoveAt(0);
+                LinkList.Add(Link);
+
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<string>(ShowBalloon), Link);
+            }
+        }
+
+        private void ShowBalloon(string text)
+        {
+            TaskbarTools.TaskbarBalloon.Show(text, TimeSpan.FromSeconds(15), OnClicked, text);
+        }
+
+        private void OnClicked(object data)
+        {
+            LaunchBrowser(data as string);
+        }
+
+        public static void LaunchBrowser(string link)
+        {
+            try
+            {
+                Process.Start(link);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                link = link.Replace("&", "^&");
+                Process.Start(new ProcessStartInfo("cmd", $"/c start {link}") { CreateNoWindow = true });
+            }
         }
 
         public ObservableCollection<string> LinkList { get; } = new ObservableCollection<string>();
