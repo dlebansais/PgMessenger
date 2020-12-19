@@ -10,14 +10,14 @@ namespace Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             int IntValue = (int)value;
-            CompositeCollection CollectionOfItems = parameter as CompositeCollection;
+            CompositeCollection CollectionOfItems = (CompositeCollection)parameter;
 
             return CollectionOfItems[IntValue > 0 ? 1 : 0];
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return null;
+            return null !;
         }
     }
 }

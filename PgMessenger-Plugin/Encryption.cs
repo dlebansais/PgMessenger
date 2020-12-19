@@ -51,7 +51,7 @@ namespace Encryption
         /// Adds overhead of (Optional-Payload + BlockSize(16) + Message-Padded-To-Blocksize +  HMac-Tag(32)) * 1.33 Base64
         /// </remarks>
         public static string SimpleEncrypt(string secretMessage, byte[] cryptKey, byte[] authKey,
-                           byte[] nonSecretPayload = null)
+                           byte[]? nonSecretPayload = null)
         {
             if (string.IsNullOrEmpty(secretMessage))
                 throw new ArgumentException("Secret Message Required!", "secretMessage");
@@ -72,7 +72,7 @@ namespace Encryption
         /// Decrypted Message
         /// </returns>
         /// <exception cref="System.ArgumentException">Encrypted Message Required!;encryptedMessage</exception>
-        public static string SimpleDecrypt(string encryptedMessage, byte[] cryptKey, byte[] authKey,
+        public static string? SimpleDecrypt(string encryptedMessage, byte[] cryptKey, byte[] authKey,
                            int nonSecretPayloadLength = 0)
         {
             if (string.IsNullOrWhiteSpace(encryptedMessage))
@@ -98,8 +98,7 @@ namespace Encryption
         /// Significantly less secure than using random binary keys.
         /// Adds additional non secret payload for key generation parameters.
         /// </remarks>
-        public static string SimpleEncryptWithPassword(string secretMessage, string password,
-                                 byte[] nonSecretPayload = null)
+        public static string SimpleEncryptWithPassword(string secretMessage, string password, byte[] nonSecretPayload)
         {
             if (string.IsNullOrEmpty(secretMessage))
                 throw new ArgumentException("Secret Message Required!", "secretMessage");
@@ -123,7 +122,7 @@ namespace Encryption
         /// <remarks>
         /// Significantly less secure than using random binary keys.
         /// </remarks>
-        public static string SimpleDecryptWithPassword(string encryptedMessage, string password,
+        public static string? SimpleDecryptWithPassword(string encryptedMessage, string password,
                                  int nonSecretPayloadLength = 0)
         {
             if (string.IsNullOrWhiteSpace(encryptedMessage))
@@ -134,7 +133,7 @@ namespace Encryption
             return plainText == null ? null : Encoding.UTF8.GetString(plainText);
         }
 
-        public static byte[] SimpleEncrypt(byte[] secretMessage, byte[] cryptKey, byte[] authKey, byte[] nonSecretPayload = null)
+        public static byte[] SimpleEncrypt(byte[] secretMessage, byte[] cryptKey, byte[] authKey, byte[]? nonSecretPayload = null)
         {
             //User Error Checks
             if (cryptKey == null || cryptKey.Length != KeyBitSize / 8)
@@ -204,7 +203,7 @@ namespace Encryption
 
         }
 
-        public static byte[] SimpleDecrypt(byte[] encryptedMessage, byte[] cryptKey, byte[] authKey, int nonSecretPayloadLength = 0)
+        public static byte[]? SimpleDecrypt(byte[] encryptedMessage, byte[] cryptKey, byte[] authKey, int nonSecretPayloadLength = 0)
         {
 
             //Basic Usage Error Checks
@@ -273,7 +272,7 @@ namespace Encryption
             }
         }
 
-        public static byte[] SimpleEncryptWithPassword(byte[] secretMessage, string password, byte[] nonSecretPayload = null)
+        public static byte[] SimpleEncryptWithPassword(byte[] secretMessage, string password, byte[] nonSecretPayload)
         {
             nonSecretPayload = nonSecretPayload ?? new byte[] { };
 

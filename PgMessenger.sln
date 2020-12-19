@@ -1,13 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2035
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PgMessenger", "PgMessenger\PgMessenger.csproj", "{7318B627-56DB-4E8C-9A74-0F373A0563B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PgMessenger", "PgMessenger\PgMessenger.csproj", "{7318B627-56DB-4E8C-9A74-0F373A0563B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PgMessenger-Plugin", "PgMessenger-Plugin\PgMessenger-Plugin.csproj", "{91DF0A17-BE03-46B1-8C2A-F21065F60581}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PgMessenger-Plugin", "PgMessenger-Plugin\PgMessenger-Plugin.csproj", "{91DF0A17-BE03-46B1-8C2A-F21065F60581}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1E62BB25-BD8E-48AA-BB41-14FB2110D59C} = {1E62BB25-BD8E-48AA-BB41-14FB2110D59C}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SinglePluginHost", "SinglePluginHost\SinglePluginHost.csproj", "{1AA662FD-9DDE-4638-B2B5-2367268B5B96}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1A6A6A69-4C72-4DF5-B0D5-0C324649313C}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PreBuild", "PreBuild\PreBuild.csproj", "{1E62BB25-BD8E-48AA-BB41-14FB2110D59C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +31,10 @@ Global
 		{91DF0A17-BE03-46B1-8C2A-F21065F60581}.Debug|x64.Build.0 = Debug|x64
 		{91DF0A17-BE03-46B1-8C2A-F21065F60581}.Release|x64.ActiveCfg = Release|x64
 		{91DF0A17-BE03-46B1-8C2A-F21065F60581}.Release|x64.Build.0 = Release|x64
-		{1AA662FD-9DDE-4638-B2B5-2367268B5B96}.Debug|x64.ActiveCfg = Debug|x64
-		{1AA662FD-9DDE-4638-B2B5-2367268B5B96}.Debug|x64.Build.0 = Debug|x64
-		{1AA662FD-9DDE-4638-B2B5-2367268B5B96}.Release|x64.ActiveCfg = Release|x64
-		{1AA662FD-9DDE-4638-B2B5-2367268B5B96}.Release|x64.Build.0 = Release|x64
+		{1E62BB25-BD8E-48AA-BB41-14FB2110D59C}.Debug|x64.ActiveCfg = Debug|x64
+		{1E62BB25-BD8E-48AA-BB41-14FB2110D59C}.Debug|x64.Build.0 = Debug|x64
+		{1E62BB25-BD8E-48AA-BB41-14FB2110D59C}.Release|x64.ActiveCfg = Release|x64
+		{1E62BB25-BD8E-48AA-BB41-14FB2110D59C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

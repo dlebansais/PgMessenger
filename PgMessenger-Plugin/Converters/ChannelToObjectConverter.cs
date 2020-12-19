@@ -12,7 +12,7 @@ namespace Converters
         {
             ChannelType ChannelValue = (ChannelType)value;
             int IntValue = (int)ChannelValue;
-            CompositeCollection CollectionOfItems = parameter as CompositeCollection;
+            CompositeCollection CollectionOfItems = (CompositeCollection)parameter;
 
             if (IntValue >= CollectionOfItems.Count)
                 IntValue = 0;
@@ -22,7 +22,7 @@ namespace Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return null;
+            return null !;
         }
     }
 }

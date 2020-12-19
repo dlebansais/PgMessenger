@@ -1,8 +1,8 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
-namespace PgMessenger
+﻿namespace PgMessenger
 {
+    using System.ComponentModel;
+    using System.Runtime.CompilerServices;
+
     public class Guildmate : INotifyPropertyChanged
     {
         #region Init
@@ -42,17 +42,24 @@ namespace PgMessenger
 
         #region Implementation of INotifyPropertyChanged
         /// <summary>
-        ///     Implements the PropertyChanged event.
+        /// Implements the PropertyChanged event.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        internal void NotifyPropertyChanged(string propertyName)
+        /// <summary>
+        /// Invoke handlers of the <see cref="PropertyChanged"/> event.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that changed.</param>
+        protected void NotifyPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Justification = "Default parameter is mandatory with [CallerMemberName]")]
-        internal void NotifyThisPropertyChanged([CallerMemberName] string propertyName = "")
+        /// <summary>
+        /// Invoke handlers of the <see cref="PropertyChanged"/> event.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that changed.</param>
+        protected void NotifyThisPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

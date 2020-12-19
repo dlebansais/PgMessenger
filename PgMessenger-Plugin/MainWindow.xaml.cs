@@ -1,19 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Navigation;
-using System.Windows.Threading;
-using TaskbarIconHost;
-
-namespace PgMessenger
+﻿namespace PgMessenger
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.ComponentModel;
+    using System.Diagnostics;
+    using System.Reflection;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Windows;
+    using System.Windows.Input;
+    using System.Windows.Media;
+    using System.Windows.Navigation;
+    using System.Windows.Threading;
+    using RegistryTools;
+    using ResourceTools;
+    using TaskbarIconHost;
+
     public partial class MainWindow : Window, INotifyPropertyChanged, IDisposable
     {
         #region Constants
@@ -33,7 +36,9 @@ namespace PgMessenger
                 Plugin = plugin;
                 Settings = Plugin.Settings;
                 LastClosedTime = DateTime.MinValue;
-                Icon = ResourceTools.LoadEmbeddedIcon("main.ico");
+
+                ResourceLoader.LoadIcon("main.ico", string.Empty, out ImageSource MainIcon);
+                Icon = MainIcon;
 
                 InitLocation();
                 InitSettings();
@@ -46,10 +51,10 @@ namespace PgMessenger
 
         private void InitLocation()
         {
-            Left = Settings.GetSettingDouble("HorizontalOffset", double.NaN);
-            Top = Settings.GetSettingDouble("VerticalOffset", double.NaN);
-            Width = Settings.GetSettingDouble("Width", double.NaN);
-            Height = Settings.GetSettingDouble("Height", double.NaN);
+            Left = Settings.GetDouble("HorizontalOffset", double.NaN);
+            Top = Settings.GetDouble("VerticalOffset", double.NaN);
+            Width = Settings.GetDouble("Width", double.NaN);
+            Height = Settings.GetDouble("Height", double.NaN);
 
             if (!double.IsNaN(Width) && !double.IsNaN(Height))
                 SizeToContent = SizeToContent.Manual;
@@ -57,13 +62,13 @@ namespace PgMessenger
 
         private void SaveLocation()
         {
-            Settings.SetSettingDouble("HorizontalOffset", Left);
-            Settings.SetSettingDouble("VerticalOffset", Top);
-            Settings.SetSettingDouble("Width", Width);
-            Settings.SetSettingDouble("Height", Height);
+            Settings.SetDouble("HorizontalOffset", Left);
+            Settings.SetDouble("VerticalOffset", Top);
+            Settings.SetDouble("Width", Width);
+            Settings.SetDouble("Height", Height);
         }
 
-        public IPluginSettings Settings { get; private set; }
+        public Settings Settings { get; private set; }
         #endregion
 
         #region Properties
@@ -250,29 +255,29 @@ namespace PgMessenger
         #region Settings
         private void InitSettings()
         {
-            _AutoScroll = Settings.GetSettingBool("AutoScroll", true);
-            Topmost = Settings.GetSettingBool("Topmost", Topmost);
-            _MessageZoom = Settings.GetSettingDouble("MessageZoom", DefaultZoom);
+            _AutoScroll = Settings.GetBool("AutoScroll", true);
+            Topmost = Settings.GetBool("Topmost", Topmost);
+            _MessageZoom = Settings.GetDouble("MessageZoom", DefaultZoom);
             if (!(_MessageZoom >= 1.0 && _MessageZoom <= 5.0))
                 _MessageZoom = DefaultZoom;
-            _HideSpoilers = Settings.GetSettingBool("HideSpoilers", true);
-            _SelectedGuild = Settings.GetSettingInt("SelectedGuild", -1);
-            DisplayGlobal = Settings.GetSettingBool("DisplayGlobal", true);
-            DisplayHelp = Settings.GetSettingBool("DisplayHelp", true);
-            DisplayTrade = Settings.GetSettingBool("DisplayTrade", true);
+            _HideSpoilers = Settings.GetBool("HideSpoilers", true);
+            _SelectedGuild = Settings.GetInt("SelectedGuild", -1);
+            DisplayGlobal = Settings.GetBool("DisplayGlobal", true);
+            DisplayHelp = Settings.GetBool("DisplayHelp", true);
+            DisplayTrade = Settings.GetBool("DisplayTrade", true);
         }
 
         private void SaveSettings()
         {
-            Settings.SetSettingBool("AutoScroll", AutoScroll);
-            Settings.SetSettingBool("Topmost", Topmost);
-            Settings.SetSettingDouble("MessageZoom", MessageZoom);
-            Settings.SetSettingBool("HideSpoilers", HideSpoilers);
+            Settings.SetBool("AutoScroll", AutoScroll);
+            Settings.SetBool("Topmost", Topmost);
+            Settings.SetDouble("MessageZoom", MessageZoom);
+            Settings.SetBool("HideSpoilers", HideSpoilers);
             if (SelectedGuild >= 0)
-                Settings.SetSettingInt("SelectedGuild", SelectedGuild);
-            Settings.SetSettingBool("DisplayGlobal", DisplayGlobal);
-            Settings.SetSettingBool("DisplayHelp", DisplayHelp);
-            Settings.SetSettingBool("DisplayTrade", DisplayTrade);
+                Settings.SetInt("SelectedGuild", SelectedGuild);
+            Settings.SetBool("DisplayGlobal", DisplayGlobal);
+            Settings.SetBool("DisplayHelp", DisplayHelp);
+            Settings.SetBool("DisplayTrade", DisplayTrade);
         }
         #endregion
 
@@ -448,17 +453,24 @@ namespace PgMessenger
 
         #region Implementation of INotifyPropertyChanged
         /// <summary>
-        ///     Implements the PropertyChanged event.
+        /// Implements the PropertyChanged event.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        internal void NotifyPropertyChanged(string propertyName)
+        /// <summary>
+        /// Invoke handlers of the <see cref="PropertyChanged"/> event.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that changed.</param>
+        protected void NotifyPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Justification = "Default parameter is mandatory with [CallerMemberName]")]
-        internal void NotifyThisPropertyChanged([CallerMemberName] string propertyName = "")
+        /// <summary>
+        /// Invoke handlers of the <see cref="PropertyChanged"/> event.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that changed.</param>
+        protected void NotifyThisPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

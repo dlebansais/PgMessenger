@@ -1,9 +1,9 @@
-﻿using System;
-using System.Globalization;
-using System.Windows.Data;
-
-namespace Converters
+﻿namespace Converters
 {
+    using System;
+    using System.Globalization;
+    using System.Windows.Data;
+
     [ValueConversion(typeof(bool), typeof(object))]
     public class BooleanToObjectConverter : IValueConverter
     {
@@ -16,14 +16,14 @@ namespace Converters
             else
                 IntValue = ((bool)value) ? 1 : 0;
 
-            CompositeCollection CollectionOfItems = parameter as CompositeCollection;
+            CompositeCollection CollectionOfItems = (CompositeCollection)parameter;
 
             return CollectionOfItems[IntValue];
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return null;
+            return null !;
         }
     }
 }

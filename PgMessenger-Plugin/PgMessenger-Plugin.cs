@@ -5,6 +5,7 @@
     using System.Collections.Specialized;
     using System.Diagnostics;
     using System.Drawing;
+    using System.Globalization;
     using System.IO;
     using System.Net;
     using System.Net.Http;
@@ -16,32 +17,65 @@
     using System.Windows.Input;
     using System.Windows.Interop;
     using System.Windows.Threading;
+    using RegistryTools;
+    using ResourceTools;
     using TaskbarIconHost;
+    using Tracing;
+    using PgChatParser;
+    using System.Collections.ObjectModel;
+    using TaskbarTools;
 
-    public class PgMessengerPlugin : TaskbarIconHost.IPluginClient
+    /// <summary>
+    /// Represents a plugin that displays Project: Gorgon global chat.
+    /// </summary>
+    public class PgMessengerPlugin : IPluginClient, IDisposable
     {
         #region Plugin
+        /// <summary>
+        /// Gets the plugin name.
+        /// </summary>
         public string Name
         {
-            get { return PluginDetails.Name; }
+            get { return "PgMessenger"; }
         }
 
+        /// <summary>
+        /// Gets the plugin unique ID.
+        /// </summary>
         public Guid Guid
         {
-            get { return PluginDetails.Guid; }
+            get { return new Guid("{2301E527-A27B-4D03-A758-C6D7E4AFB436}"); }
         }
 
+        /// <summary>
+        /// Gets the plugin assembly name.
+        /// </summary>
+        public string AssemblyName { get; } = "PgMessenger-Plugin";
+
+        /// <summary>
+        ///  Gets a value indicating whether the plugin require elevated (administrator) mode to operate.
+        /// </summary>
         public bool RequireElevated
         {
             get { return false; }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the plugin want to handle clicks on the taskbar icon.
+        /// </summary>
         public bool HasClickHandler
         {
             get { return true; }
         }
 
-        public void Initialize(bool isElevated, Dispatcher dispatcher, TaskbarIconHost.IPluginSettings settings, TaskbarIconHost.IPluginLogger logger)
+        /// <summary>
+        /// Called once at startup, to initialize the plugin.
+        /// </summary>
+        /// <param name="isElevated">True if the caller is executing in administrator mode.</param>
+        /// <param name="dispatcher">A dispatcher that can be used to synchronize with the UI.</param>
+        /// <param name="settings">An interface to read and write settings in the registry.</param>
+        /// <param name="logger">An interface to log events asynchronously.</param>
+        public void Initialize(bool isElevated, Dispatcher dispatcher, Settings settings, ITracer logger)
         {
             IsElevated = isElevated;
             Dispatcher = dispatcher;
@@ -61,53 +95,72 @@
                               isCheckedHandler: () => false,
                               commandHandler: OnCommandShowWindow);
 
-            InitializeCommand("Restore Window",
+            InitializeCommand("RestoreWindow",
                               isVisibleHandler: () => true,
                               isEnabledHandler: () => true,
                               isCheckedHandler: () => false,
                               commandHandler: OnCommandRestoreWindow);
 
-            InitializeCommand("Settings...",
+            InitializeCommand("Settings",
                               isVisibleHandler: () => true,
                               isEnabledHandler: () => true,
                               isCheckedHandler: () => false,
                               commandHandler: OnCommandSettings);
 
-            InitializeCommand("-",
-                isVisibleHandler: () => IsLinkMenuVisible(0),
-                isEnabledHandler: () => true,
-                isCheckedHandler: () => false,
-                commandHandler: OnCommandClick0);
+            InitializeCommand(isVisibleHandler: () => IsLinkMenuVisible(0),
+                              isEnabledHandler: () => true,
+                              isCheckedHandler: () => false,
+                              commandHandler: OnCommandClick0);
 
-            InitializeCommand("-",
-                isVisibleHandler: () => IsLinkMenuVisible(1),
-                isEnabledHandler: () => true,
-                isCheckedHandler: () => false,
-                commandHandler: OnCommandClick1);
+            InitializeCommand(isVisibleHandler: () => IsLinkMenuVisible(1),
+                              isEnabledHandler: () => true,
+                              isCheckedHandler: () => false,
+                              commandHandler: OnCommandClick1);
 
-            InitializeCommand("-",
-                isVisibleHandler: () => IsLinkMenuVisible(2),
-                isEnabledHandler: () => true,
-                isCheckedHandler: () => false,
-                commandHandler: OnCommandClick2);
+            InitializeCommand(isVisibleHandler: () => IsLinkMenuVisible(2),
+                              isEnabledHandler: () => true,
+                              isCheckedHandler: () => false,
+                              commandHandler: OnCommandClick2);
 
             InitChatLog(dispatcher);
         }
 
-        private void InitializeCommand(string header, Func<bool> isVisibleHandler, Func<bool> isEnabledHandler, Func<bool> isCheckedHandler, Action commandHandler)
+        private void InitializeCommand(Func<bool> isVisibleHandler, Func<bool> isEnabledHandler, Func<bool> isCheckedHandler, Action commandHandler)
         {
             RoutedUICommand Command = new RoutedUICommand();
-            Command.Text = header;
-            CommandList.Add(Command);
-            MenuHeaderTable.Add(Command, header);
-            MenuIsVisibleTable.Add(Command, isVisibleHandler);
-            MenuIsEnabledTable.Add(Command, isEnabledHandler);
-            MenuIsCheckedTable.Add(Command, isCheckedHandler);
-            MenuHandlerTable.Add(Command, commandHandler);
+            Command.Text = "-";
+
+            InitializeCommand(Command, isVisibleHandler, isEnabledHandler, isCheckedHandler, commandHandler);
         }
 
+        private void InitializeCommand(string header, Func<bool> isVisibleHandler, Func<bool> isEnabledHandler, Func<bool> isCheckedHandler, Action commandHandler)
+        {
+            string LocalizedText = Properties.Resources.ResourceManager.GetString(header, CultureInfo.CurrentCulture)!;
+            RoutedUICommand Command = new RoutedUICommand(LocalizedText, header, GetType());
+
+            InitializeCommand(Command, isVisibleHandler, isEnabledHandler, isCheckedHandler, commandHandler);
+        }
+
+        private void InitializeCommand(RoutedUICommand command, Func<bool> isVisibleHandler, Func<bool> isEnabledHandler, Func<bool> isCheckedHandler, Action commandHandler)
+        {
+            CommandList.Add(command);
+            MenuHeaderTable.Add(command, command.Text);
+            MenuIsVisibleTable.Add(command, isVisibleHandler);
+            MenuIsEnabledTable.Add(command, isEnabledHandler);
+            MenuIsCheckedTable.Add(command, isCheckedHandler);
+            MenuHandlerTable.Add(command, commandHandler);
+        }
+
+        /// <summary>
+        /// Gets the list of commands that the plugin can receive when an item is clicked in the context menu.
+        /// </summary>
         public List<ICommand> CommandList { get; private set; } = new List<ICommand>();
 
+        /// <summary>
+        /// Reads a flag indicating if the state of a menu item has changed. The flag should be reset upon return until another change occurs.
+        /// </summary>
+        /// <param name="beforeMenuOpening">True if this function is called right before the context menu is opened by the user; otherwise, false.</param>
+        /// <returns>True if a menu item state has changed since the last call; otherwise, false.</returns>
         public bool GetIsMenuChanged(bool beforeMenuOpening)
         {
             bool Result = IsMenuChanged;
@@ -131,10 +184,10 @@
 
         private void SetClickHeader(ICommand command, int index)
         {
-            if (index >= CurrentChat.LinkList.Count)
+            if (index >= LinkList.Count)
                 return;
 
-            string Header = TruncateWithEllipsis(CurrentChat.LinkList[index]);
+            string Header = TruncateWithEllipsis(LinkList[index]);
             MenuHeaderTable[command] = Header;
         }
 
@@ -148,66 +201,138 @@
             return TruncatedString;
         }
 
-        public string GetMenuHeader(ICommand Command)
+        /// <summary>
+        /// Reads the text of a menu item associated to command.
+        /// </summary>
+        /// <param name="command">The command associated to the menu item.</param>
+        /// <returns>The menu text.</returns>
+        public string GetMenuHeader(ICommand command)
         {
-            return MenuHeaderTable[Command];
+            return MenuHeaderTable[command];
         }
 
-        public bool GetMenuIsVisible(ICommand Command)
+        /// <summary>
+        /// Reads the state of a menu item associated to command.
+        /// </summary>
+        /// <param name="command">The command associated to the menu item.</param>
+        /// <returns>True if the menu item should be visible to the user, false if it should be hidden.</returns>
+        public bool GetMenuIsVisible(ICommand command)
         {
-            return MenuIsVisibleTable[Command]();
+            return MenuIsVisibleTable[command]();
         }
 
         private bool IsLinkMenuVisible(int index)
         {
-            return CurrentChat.LinkList.Count > index;
+            return LinkList.Count > index;
         }
 
-        public bool GetMenuIsEnabled(ICommand Command)
+        /// <summary>
+        /// Reads the state of a menu item associated to command.
+        /// </summary>
+        /// <param name="command">The command associated to the menu item.</param>
+        /// <returns>True if the menu item should appear enabled, false if it should be disabled.</returns>
+        public bool GetMenuIsEnabled(ICommand command)
         {
-            return MenuIsEnabledTable[Command]();
+            return MenuIsEnabledTable[command]();
         }
 
-        public bool GetMenuIsChecked(ICommand Command)
+        /// <summary>
+        /// Reads the state of a menu item associated to command.
+        /// </summary>
+        /// <param name="command">The command associated to the menu item.</param>
+        /// <returns>True if the menu item is checked, false otherwise.</returns>
+        public bool GetMenuIsChecked(ICommand command)
         {
-            return MenuIsCheckedTable[Command]();
+            return MenuIsCheckedTable[command]();
         }
 
-        public Bitmap GetMenuIcon(ICommand Command)
+        /// <summary>
+        /// Reads the icon of a menu item associated to command.
+        /// </summary>
+        /// <param name="command">The command associated to the menu item.</param>
+        /// <returns>The icon to display with the menu text, null if none.</returns>
+        public Bitmap? GetMenuIcon(ICommand command)
         {
             return null;
         }
 
+        /// <summary>
+        /// This method is called before the menu is displayed, but after changes in the menu have been evaluated.
+        /// </summary>
         public void OnMenuOpening()
         {
         }
 
-        public void OnExecuteCommand(ICommand Command)
+        /// <summary>
+        /// Requests for command to be executed.
+        /// </summary>
+        /// <param name="command">The command to execute.</param>
+        public void OnExecuteCommand(ICommand command)
         {
-            MenuHandlerTable[Command]();
+            MenuHandlerTable[command]();
         }
 
+        /// <summary>
+        /// Reads a flag indicating if the plugin icon, that might reflect the state of the plugin, has changed.
+        /// </summary>
+        /// <returns>True if the icon has changed since the last call, false otherwise.</returns>
         public bool GetIsIconChanged()
         {
             return false;
         }
 
-        public Icon Icon { get { return LoadEmbeddedResource<Icon>("Taskbar.ico", Logger); } }
-        public Bitmap SelectionBitmap { get { return LoadEmbeddedResource<Bitmap>("PgMessenger.png", Logger); } }
-
-        public void OnIconClicked()
+        /// <summary>
+        /// Gets the icon displayed in the taskbar.
+        /// </summary>
+        public Icon Icon
         {
-            MainPopup.IconClicked();
+            get
+            {
+                ResourceLoader.LoadIcon("Taskbar.ico", string.Empty, out Icon Result);
+                return Result;
+            }
         }
 
+        /// <summary>
+        /// Gets the bitmap displayed in the preferred plugin menu.
+        /// </summary>
+        public Bitmap SelectionBitmap
+        {
+            get
+            {
+                ResourceLoader.LoadBitmap("PgMessenger.png", string.Empty, out Bitmap Result);
+                return Result;
+            }
+        }
+
+        /// <summary>
+        /// Requests for the main plugin operation to be executed.
+        /// </summary>
+        public void OnIconClicked()
+        {
+            MainPopup?.IconClicked();
+        }
+
+        /// <summary>
+        /// Reads a flag indicating if the plugin tooltip, that might reflect the state of the plugin, has changed.
+        /// </summary>
+        /// <returns>True if the tooltip has changed since the last call, false otherwise.</returns>
         public bool GetIsToolTipChanged()
         {
-            bool Result = IsToolTipChanged || MainPopup.GetIsToolTipChanged();
-            IsToolTipChanged = false;
+            bool Result = false;
+
+            if (MainPopup != null)
+            {
+                Result = IsToolTipChanged || MainPopup.GetIsToolTipChanged();
+                IsToolTipChanged = false;
+            }
 
             return Result;
         }
 
+        /// <summary>
+        /// Gets the free text that indicate the state of the plugin.
+        /// </summary>
         public string ToolTip
         {
             get
@@ -216,8 +341,8 @@
 
                 Result += "\r\n" + MainPopup.ConnectedUserCount.ToString() + " Connected, " + MainPopup.GuestUserCount.ToString() + " Guest(s)";
                 if (CurrentChat != null)
-                    if (CurrentChat.LoginName != null)
-                        Result += "\r\n" + "You are online as " + CurrentChat.LoginName;
+                    if (LoginName != null)
+                        Result += "\r\n" + "You are online as " + LoginName;
                     else
                         Result += "\r\n" + "You are not online";
 
@@ -225,22 +350,36 @@
             }
         }
 
+        /// <summary>
+        /// Called when the taskbar is getting the application focus.
+        /// </summary>
         public void OnActivated()
         {
         }
 
+        /// <summary>
+        /// Called when the taskbar is loosing the application focus.
+        /// </summary>
         public void OnDeactivated()
         {
         }
 
+        /// <summary>
+        /// Requests to close and terminate a plugin.
+        /// </summary>
+        /// <param name="canClose">True if no plugin called before this one has returned false, false if one of them has.</param>
+        /// <returns>True if the plugin can be safely terminated, false if the request is denied.</returns>
         public bool CanClose(bool canClose)
         {
             return true;
         }
 
+        /// <summary>
+        /// Requests to begin closing the plugin.
+        /// </summary>
         public void BeginClose()
         {
-            MainPopup.Close();
+            MainPopup?.Close();
             SaveSettings();
 
             using (MainWindow Popup = MainPopup)
@@ -248,47 +387,56 @@
                 MainPopup = null;
             }
 
-            using (ChatLog Chat = CurrentChat)
+            using (Parser Chat = CurrentChat)
             {
                 CurrentChat = null;
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the plugin is closed.
+        /// </summary>
         public bool IsClosed
         {
             get { return true; }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the caller is executing in administrator mode.
+        /// </summary>
         public bool IsElevated { get; private set; }
-        public Dispatcher Dispatcher { get; private set; }
-        public TaskbarIconHost.IPluginSettings Settings { get; private set; }
-        public TaskbarIconHost.IPluginLogger Logger { get; private set; }
 
-        public static T LoadEmbeddedResource<T>(string resourceName, TaskbarIconHost.IPluginLogger logger)
+        /// <summary>
+        /// Gets a dispatcher that can be used to synchronize with the UI.
+        /// </summary>
+        public Dispatcher Dispatcher { get; private set; } = null!;
+
+        /// <summary>
+        /// Gets an interface to read and write settings in the registry.
+        /// </summary>
+        public Settings Settings { get; private set; } = null!;
+
+        /// <summary>
+        /// Gets an interface to log events asynchronously.
+        /// </summary>
+        public ITracer Logger { get; private set; } = null!;
+
+        private void AddLog(string message)
         {
-            // Loads an "Embedded Resource" of type T (ex: Bitmap for a PNG file).
-            foreach (string ResourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
-                if (ResourceName.EndsWith(resourceName))
-                {
-                    using (Stream rs = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName))
-                    {
-                        T Result = (T)Activator.CreateInstance(typeof(T), rs);
-                        logger.AddLog($"Resource {resourceName} loaded");
-
-                        return Result;
-                    }
-                }
-
-            logger.AddLog($"Resource {resourceName} not found");
-            return default(T);
+            Logger.Write(Category.Information, message);
         }
 
+        /// <summary>
+        /// Gets the main window popup.
+        /// </summary>
         public MainWindow MainPopup { get; private set; }
+
         private Dictionary<ICommand, string> MenuHeaderTable = new Dictionary<ICommand, string>();
         private Dictionary<ICommand, Func<bool>> MenuIsVisibleTable = new Dictionary<ICommand, Func<bool>>();
         private Dictionary<ICommand, Func<bool>> MenuIsEnabledTable = new Dictionary<ICommand, Func<bool>>();
         private Dictionary<ICommand, Func<bool>> MenuIsCheckedTable = new Dictionary<ICommand, Func<bool>>();
         private Dictionary<ICommand, Action> MenuHandlerTable = new Dictionary<ICommand, Action>();
+        private bool IsIconChanged;
         private bool IsMenuChanged;
         private bool IsToolTipChanged;
         #endregion
@@ -304,12 +452,12 @@
         #region Command Handlers
         private void OnCommandShowWindow()
         {
-            MainPopup.OnCommandShowWindow();
+            MainPopup?.OnCommandShowWindow();
         }
 
         private void OnCommandRestoreWindow()
         {
-            MainPopup.OnCommandRestoreWindow();
+            MainPopup?.OnCommandRestoreWindow();
         }
 
         private void OnCommandSettings()
@@ -320,10 +468,9 @@
             IsGuildChatEnabled = Dlg.IsGuildChatEnabled;
             CustomLogFolder = Dlg.CustomLogFolder;
             EnableUpdates = Dlg.EnableUpdates;
-            MainPopup.UpdateGuildList(CharacterList);
-            CurrentChat.SetCustomLogFolder(CustomLogFolder);
+            MainPopup?.UpdateGuildList(CharacterList);
 
-            MainPopup.OnCommandSettings();
+            MainPopup?.OnCommandSettings();
         }
 
         private void OnCommandClick0()
@@ -343,32 +490,198 @@
 
         private void OnCommandClick(int index)
         {
-            if (index >= CurrentChat.LinkList.Count)
+            if (index >= LinkList.Count)
                 return;
 
-            string Link = CurrentChat.LinkList[index];
-            ChatLog.LaunchBrowser(Link);
+            string Link = LinkList[index];
+            LaunchBrowser(Link);
         }
         #endregion
 
         #region Chat Log
+        public static void LaunchBrowser(string link)
+        {
+            try
+            {
+                Process.Start(link);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                link = link.Replace("&", "^&");
+                Process.Start(new ProcessStartInfo("cmd", $"/c start {link}") { CreateNoWindow = true });
+            }
+        }
+
         private void InitChatLog(Dispatcher dispatcher)
         {
-            CurrentChat = new ChatLog(this, CustomLogFolder, dispatcher);
-            CurrentChat.LoginNameChanged += OnLoginNameChanged;
-            CurrentChat.StartLogging();
+            CurrentChat = new Parser();
+            CurrentChat.NewLine += OnNewLine;
+            /*CurrentChat = new ChatLog(this, CustomLogFolder, dispatcher);
+            CurrentChat.StartLogging();*/
 
-            CurrentChat.LinkList.CollectionChanged += OnLinkListChanged;
+            LinkList.CollectionChanged += OnLinkListChanged;
         }
-        
+
+        public string LoginName { get; private set; }
+
+        void OnNewLine(Parser sender, DateTime logTime, string logLine)
+        {
+            string Line = logLine;
+
+            string LogInPattern = "**************************************** Logged In As ";
+            if (Line.StartsWith(LogInPattern))
+            {
+                LoginName = Line.Substring(LogInPattern.Length);
+                OnLoginNameChanged();
+                return;
+            }
+
+            string LogOutPattern = "**************************************** Logged Out";
+            if (Line == LogOutPattern)
+            {
+                LoginName = null;
+                OnLoginNameChanged();
+                return;
+            }
+
+            if (Line[0] != '[')
+                return;
+
+            int Index = Line.IndexOf(']');
+            if (Index <= 0)
+                return;
+            string Channel = Line.Substring(1, Index - 1);
+            string Message = Line.Substring(Index + 1).Trim();
+            ChannelType Type = StringToChannelType(Channel);
+
+            ParseLink(Message);
+
+            switch (Type)
+            {
+                case ChannelType.Global:
+                case ChannelType.Trade:
+                case ChannelType.Help:
+                case ChannelType.Guild:
+                case ChannelType.Nearby:
+                case ChannelType.NPCChatter:
+                case ChannelType.Status:
+                case ChannelType.Error:
+                    AddToLog(logTime, Type, Message);
+                    break;
+            }
+        }
+
+        private void AddToLog(DateTime LogTime, ChannelType Type, string Message)
+        {
+            Message = Message.Replace('\n', '\t');
+            string Hash = "";
+
+            if (Type == ChannelType.Guild)
+            {
+                if (!IsGuildChatEnabled)
+                    return;
+
+                if (string.IsNullOrEmpty(LoginName))
+                    return;
+
+                if (Message.StartsWith("(SYSTEM)") || Message.StartsWith("-SYSTEM-"))
+                {
+                    if (Message[Message.Length - 1] == '"')
+                        Message = Message.Substring(0, Message.Length - 1);
+
+                    string PasswordPattern = "PgMessenger:";
+                    int PasswordStart = Message.IndexOf(PasswordPattern);
+
+                    if (PasswordStart >= 0)
+                    {
+                        int i = PasswordStart + PasswordPattern.Length;
+                        while (i < Message.Length && char.IsWhiteSpace(Message[i]))
+                            i++;
+
+                        string Password = "";
+                        while (i < Message.Length && !char.IsWhiteSpace(Message[i]) && i != '\r' && i != '\n')
+                            Password += Message[i++].ToString();
+
+                        UpdatePassword(LoginName, Password);
+                    }
+
+                    return;
+                }
+                else
+                {
+                    string Password = GetPasswordByLoginName(LoginName);
+                    if (Password == null)
+                        return;
+
+                    try
+                    {
+                        Hash = MD5Hash.GetHashString(Message);
+                        Message = Encryption.AESThenHMAC.SimpleEncryptWithPassword(Message, Password, new byte[0]);
+                    }
+                    catch
+                    {
+                        Message = null;
+                    }
+
+                    if (Message == null)
+                        return;
+                }
+            }
+            else if (Type == ChannelType.Global)
+            {
+                if (Message.StartsWith("(SYSTEM) [Announcement]: Updating your character") ||
+                    Message.StartsWith("(SYSTEM) [Announcement]: Done upgrading your character"))
+                    return;
+            }
+
+            if (Type == ChannelType.Global || Type == ChannelType.Help || Type == ChannelType.Trade || Type == ChannelType.Guild)
+                UploadLog(LoginName != null ? LoginName : "", Type.ToString(), Message, Hash);
+        }
+
+        private void ParseLink(string message)
+        {
+            int Index = message.IndexOf("http://", StringComparison.InvariantCulture);
+            if (Index < 0)
+                Index = message.IndexOf("https://", StringComparison.InvariantCulture);
+            if (Index < 0)
+                return;
+
+            int LastIndex = message.IndexOf(" ", Index, StringComparison.InvariantCulture);
+            if (LastIndex < 0)
+                LastIndex = message.Length;
+
+            string Link = message.Substring(Index, LastIndex - Index);
+
+            if (!LinkList.Contains(Link))
+            {
+                while (LinkList.Count >= 3)
+                    LinkList.RemoveAt(0);
+                LinkList.Add(Link);
+
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<string>(ShowBalloon), Link);
+            }
+        }
+
+        private void ShowBalloon(string text)
+        {
+            TaskbarBalloon.Show(text, TimeSpan.FromSeconds(15), OnClicked, text);
+        }
+
+        private void OnClicked(object data)
+        {
+            LaunchBrowser(data as string);
+        }
+
+        public ObservableCollection<string> LinkList { get; } = new ObservableCollection<string>();
+
         private void OnLinkListChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             IsMenuChanged = true;
         }
 
-        private void OnLoginNameChanged(object sender, EventArgs e)
+        private void OnLoginNameChanged()
         {
-            string LoginName = CurrentChat.LoginName;
             MainPopup.LoginName = LoginName;
             IsToolTipChanged = true;
         }
@@ -419,29 +732,29 @@
             return null;
         }
 
-        private ChatLog CurrentChat;
+        private Parser CurrentChat;
         #endregion
 
         #region Settings
         private void LoadSettings()
         {
-            LogId = Settings.GetSettingString("LogId", null);
+            LogId = Settings.GetString("LogId", null);
             if (LogId == null)
             {
                 LogId = Guid.NewGuid().ToString();
-                Settings.SetSettingString("LogId", LogId);
+                Settings.SetString("LogId", LogId);
             }
 
-            IsGuildChatEnabled = Settings.GetSettingBool("IsGuildChatEnabled", false);
-            CustomLogFolder = Settings.GetSettingString("CustomLogFolder", "");
-            EnableUpdates = Settings.GetSettingBool("EnableUpdates", true);
+            IsGuildChatEnabled = Settings.GetBool("IsGuildChatEnabled", false);
+            CustomLogFolder = Settings.GetString("CustomLogFolder", "");
+            EnableUpdates = Settings.GetBool("EnableUpdates", true);
 
             for (int i = 0; i < 4; i++)
             {
-                string Name = Settings.GetSettingString("CharacterName#" + i, "");
-                string GuildName = Settings.GetSettingString("GuildName#" + i, "");
-                bool IsAutoUpdated = Settings.GetSettingBool("IsAutoUpdated#" + i, false);
-                string Password = Settings.GetSettingString("Password#" + i, "");
+                string Name = Settings.GetString("CharacterName#" + i, "");
+                string GuildName = Settings.GetString("GuildName#" + i, "");
+                bool IsAutoUpdated = Settings.GetBool("IsAutoUpdated#" + i, false);
+                string Password = Settings.GetString("Password#" + i, "");
                 CharacterSetting NewCharacter = new CharacterSetting(Name, GuildName, IsAutoUpdated, Password);
                 CharacterList.Add(NewCharacter);
             }
@@ -463,16 +776,16 @@
 
         private void SaveSettings()
         {
-            Settings.SetSettingBool("IsGuildChatEnabled", IsGuildChatEnabled);
-            Settings.SetSettingString("CustomLogFolder", CustomLogFolder);
-            Settings.SetSettingBool("EnableUpdates", EnableUpdates);
+            Settings.SetBool("IsGuildChatEnabled", IsGuildChatEnabled);
+            Settings.SetString("CustomLogFolder", CustomLogFolder);
+            Settings.SetBool("EnableUpdates", EnableUpdates);
 
             for (int i = 0; i < 4 && i < CharacterList.Count; i++)
             {
-                Settings.SetSettingString("CharacterName#" + i, CharacterList[i].Name);
-                Settings.SetSettingString("GuildName#" + i, CharacterList[i].GuildName);
-                Settings.SetSettingBool("IsAutoUpdated#" + i, CharacterList[i].IsAutoUpdated);
-                Settings.SetSettingString("Password#" + i, CharacterList[i].Password);
+                Settings.SetString("CharacterName#" + i, CharacterList[i].Name);
+                Settings.SetString("GuildName#" + i, CharacterList[i].GuildName);
+                Settings.SetBool("IsAutoUpdated#" + i, CharacterList[i].IsAutoUpdated);
+                Settings.SetString("Password#" + i, CharacterList[i].Password);
             }
         }
         #endregion
@@ -647,7 +960,7 @@
                 return false;
 
             Channel = Channel[0].ToString().ToUpper() + Channel.Substring(1);
-            ChannelType LogType = ChatLog.StringToChannelType(Channel);
+            ChannelType LogType = StringToChannelType(Channel);
             if (LogType == ChannelType.Other ||
                 (LogType == ChannelType.Global && !DisplayGlobal) ||
                 (LogType == ChannelType.Help && !DisplayHelp) ||
@@ -736,6 +1049,31 @@
             LogEntry = new LogEntry(LogTime, LogType, Author, Message, ItemList);
             //Debug.Print("Entry added: " + LogTime + ", " + LogType + ", " + Message);
             return true;
+        }
+
+        public static ChannelType StringToChannelType(string Channel)
+        {
+            ChannelType LogType;
+            if (Channel == "Global")
+                LogType = ChannelType.Global;
+            else if (Channel == "Trade")
+                LogType = ChannelType.Trade;
+            else if (Channel == "Help")
+                LogType = ChannelType.Help;
+            else if (Channel == "Guild")
+                LogType = ChannelType.Guild;
+            else if (Channel == "Nearby")
+                LogType = ChannelType.Nearby;
+            else if (Channel == "NPC Chatter")
+                LogType = ChannelType.NPCChatter;
+            else if (Channel == "Status")
+                LogType = ChannelType.Status;
+            else if (Channel == "Error")
+                LogType = ChannelType.Error;
+            else
+                LogType = ChannelType.Other;
+
+            return LogType;
         }
 
         private string ConnectionAddress = "https://www.numbatsoft.com/pgmessenger/";
@@ -887,6 +1225,55 @@
             HwndSource source = (HwndSource)HwndSource.FromVisual(Window);
             IntPtr WindowHandle = source.Handle;
             SetForegroundWindow(WindowHandle);
+        }
+        #endregion
+
+        #region Implementation of IDisposable
+        /// <summary>
+        /// Called when an object should release its resources.
+        /// </summary>
+        /// <param name="isDisposing">Indicates if resources must be disposed now.</param>
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+
+                if (isDisposing)
+                    DisposeNow();
+            }
+        }
+
+        /// <summary>
+        /// Called when an object should release its resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Finalizes an instance of the <see cref="PgMoonPlugin"/> class.
+        /// </summary>
+        ~PgMessengerPlugin()
+        {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// True after <see cref="Dispose(bool)"/> has been invoked.
+        /// </summary>
+        private bool IsDisposed;
+
+        /// <summary>
+        /// Disposes of every reference that must be cleaned up.
+        /// </summary>
+        private void DisposeNow()
+        {
+            using (Settings)
+            {
+            }
         }
         #endregion
     }
