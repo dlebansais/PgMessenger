@@ -1,3 +1,5 @@
+**This project has been archived and is no longer operational. The server used to communicate between users is now down.**
+
 # What is PgMessenger?
 PgMessenger is a Windows program (download [here](https://github.com/dlebansais/PgMessenger/releases)) that let you read the game chat of *Project: Gorgon* on any computer.
 
